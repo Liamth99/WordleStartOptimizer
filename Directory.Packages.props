@@ -1,0 +1,7 @@
+<Project>
+
+  <ItemGroup>
+    <PackageReference Include="LOCAT" Version="1.5.1" />
+  </ItemGroup>
+
+</Project>

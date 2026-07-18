@@ -1,0 +1,8 @@
+<Project>
+
+  <PropertyGroup>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+    <NoWarn>$(NoWarn);CA1873</NoWarn>
+  </PropertyGroup>
+
+</Project>
