@@ -19,13 +19,23 @@ internal class Program
         if(parserResult.Errors.Any())
             return;
 
+        Options = parserResult.Value;
+
+        if (Options.RequiredWordsIndexes?.Length >= Options.SetSize)
+        {
+            AnsiConsole.WriteException(new ArgumentException($"Required words length must be less than Set Size ({Options.SetSize}).", nameof(Options.RequiredWords)));
+            return;
+        }
+
         try { await CheckVersionAsync(); }
         catch (Exception ex) { }
 
-        Options = parserResult.Value;
-
         AnsiConsole.MarkupLine($"Generating starting word sets with {Options.SetSize} words.");
         AnsiConsole.MarkupLine($"Using [red]{Options.ThreadCount}[/] threads.");
+        if (Options.RequiredWordsIndexes is not null)
+        {
+            AnsiConsole.MarkupLine($"Using required words: {string.Join(", ", Options.RequiredWordsIndexes.Select(x => $"[cyan]{Data.ValidGuesses[x]}[/]"))}");
+        }
 
         ConcurrentBag<CandidateSet> candidates = [];
         ConcurrentBag<WordSet> scoredSets = [];

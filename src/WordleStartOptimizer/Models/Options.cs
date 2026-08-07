@@ -70,24 +70,25 @@ public class Options
             }
 
             var words = value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            int[] indexes = new int[words.Length];
 
-            if (words.Length >= SetSize)
-                throw new ArgumentException("Required words length must be less than Set Size.", nameof(RequiredWords));
-
-            foreach (string word in words)
+            for (int i = 0; i < words.Length; i++)
             {
-                if (!Data.ValidGuesses.Contains(word))
+                var word  = words[i];
+                var index = Data.ValidGuesses.IndexOf(word);
+
+                if (index is -1)
                     throw new ArgumentException($"{word} is not a valid wordle guess and cannot be marked as required.", nameof(RequiredWords));
+
+                indexes[i] = index;
             }
 
-            field = value;
+            field                = value;
+            RequiredWordsIndexes = indexes;
         }
     }
 
-    public int[]? RequiredWordsIndexes => RequiredWords?
-                                         .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                                         .Select(x => Data.ValidGuesses.IndexOf(x))
-                                         .ToArray();
+    public int[]? RequiredWordsIndexes { get; private init; }
 
     [Option("top", Default = 10, HelpText = "How many results to show when exporting data.")]
     public int TopResults { get; init; }
