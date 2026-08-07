@@ -14,9 +14,6 @@ internal class Program
 
     public static async Task Main(string[] args)
     {
-        try { await CheckVersionAsync(); }
-        catch (Exception ex) { }
-
         var parserResult = Parser.Default.ParseArguments<Options>(args);
 
         if(parserResult.Errors.Any())
@@ -24,8 +21,21 @@ internal class Program
 
         Options = parserResult.Value;
 
+        if (Options.RequiredWordsIndexes?.Length >= Options.SetSize)
+        {
+            AnsiConsole.WriteException(new ArgumentException($"Required words length must be less than Set Size ({Options.SetSize}).", nameof(Options.RequiredWords)));
+            return;
+        }
+
+        try { await CheckVersionAsync(); }
+        catch (Exception ex) { }
+
         AnsiConsole.MarkupLine($"Generating starting word sets with {Options.SetSize} words.");
         AnsiConsole.MarkupLine($"Using [red]{Options.ThreadCount}[/] threads.");
+        if (Options.RequiredWordsIndexes is not null)
+        {
+            AnsiConsole.MarkupLine($"Using required words: {string.Join(", ", Options.RequiredWordsIndexes.Select(x => $"[cyan]{Data.ValidGuesses[x]}[/]"))}");
+        }
 
         ConcurrentBag<CandidateSet> candidates = [];
         ConcurrentBag<WordSet> scoredSets = [];
@@ -64,7 +74,25 @@ internal class Program
                               var arr = Enumerable.Repeat(0, Options.SetSize).ToArray();
                               arr[0] = i;
 
-                              Search(i + 1, Data.ProcessedGuesses[i].Mask, 1, arr, candidates);
+
+                              int setIndex = 1;
+
+                              if (Options.RequiredWordsIndexes is not null)
+                              {
+
+                                  foreach (var wordIndex in Options.RequiredWordsIndexes)
+                                  {
+                                      arr[setIndex] =  wordIndex;
+
+                                      if((Data.ProcessedGuesses[wordIndex].Mask & mask) > 0)
+                                          return;
+
+                                      mask |= Data.ProcessedGuesses[wordIndex].Mask;
+                                      setIndex++;
+                                  }
+                              }
+
+                              Search(i + 1, mask, setIndex, arr, candidates);
 
                               var progress = (double)completed / Data.ProcessedGuesses.Length;
 
@@ -81,6 +109,11 @@ internal class Program
                       candidateTask.Description($"Found [Aqua]{candidates.Count:N0}[/] candidates.");
                       candidateTask.Value(1);
                       candidateTask.StopTask();
+
+                      if (candidates.Count is 0)
+                      {
+                          return;
+                      }
 
                       completed    = 0;
                       lastProgress = 0;
@@ -117,6 +150,39 @@ internal class Program
                       scoringTask.StopTask();
                   });
 
+        if (scoredSets.IsEmpty)
+        {
+            AnsiConsole.MarkupLine("[red]Found no valid sets with current configuration.[/]");
+            return;
+        }
+
+        if (scoredSets.Count is 1)
+        {
+            var set = scoredSets.First();
+
+            AnsiConsole.MarkupLine("[Yellow]Only found one valid set with configuration.[/]");
+            AnsiConsole.MarkupLine($"{string.Join(", ", set.Words.Select(x => $"[Aqua]{x}[/]") )}");
+
+            if (Options.VerboseScoring)
+            {
+                var table = new Table();
+
+                table.AddColumns("Metric", "Value");
+                table.AddRow("Entropy", $"{set.Entropy:N5}");
+                table.AddRow("Expected Remaining", $"{set.ExpectedRemaining:N1}");
+                table.AddRow("Worst Case Remaining", $"{set.WorstCaseRemaining:N0}");
+                table.AddRow("Green Letter Score", $"{set.Green:N1}");
+                table.AddRow("Yellow Letter Score", $"{set.Yellow:N1}");
+                table.AddRow("Vowel Score", $"{set.VowelCount:N0}");
+                table.AddRow("Letter Distribution Score", $"{set.LetterDistributionOrder:N3}");
+                table.AddRow("Valid Answers", $"{set.ValidAnswers:N0}");
+
+                AnsiConsole.Write(table);
+            }
+
+            return;
+        }
+
         if (Options.VerboseScoring)
         {
             AnsiConsole.Write(new Rule("Global Stat Breakdown").LeftJustified());
@@ -144,13 +210,8 @@ internal class Program
             AnsiConsole.MarkupLine($"{i + 1}: {string.Join(", ", set.Words.Select(x => $"[Aqua]{x}[/]") )}");
             AnsiConsole.MarkupLine($"Total Score: [green]{set.Score:N3}[/]");
 
-            if(Options.VerboseScoring)
+            if (Options.VerboseScoring)
             {
-                string ColorNormalizedScore(double s)
-                {
-                    return $"[{(s < .25 ? "red" : s < .75 ? "yellow" : "green")}]{s:N3}[/]";
-                }
-
                 var table = new Table();
 
                 table.AddColumns(
@@ -240,6 +301,11 @@ internal class Program
 
             AnsiConsole.WriteLine();
         }
+    }
+
+    private static string ColorNormalizedScore(double s)
+    {
+        return $"[{(s < .25 ? "red" : s < .75 ? "yellow" : "green")}]{s:N3}[/]";
     }
 
     private static void Search(int start, int usedMask, int depth, int[] chosen, ConcurrentBag<CandidateSet> results)

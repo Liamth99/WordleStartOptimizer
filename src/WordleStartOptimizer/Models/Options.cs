@@ -56,6 +56,40 @@ public class Options
     [Option('d', "letterDistribution", Default = 0.1, HelpText = "Weight given to the distribution of characters in each word, and how soon they appear in the set.")]
     public double LetterDistributionOrderModifier { get; init; }
 
+    [Option("requiredWords", Default = null, HelpText = "List of required words to include in the generated starting word set.")]
+    public string? RequiredWords
+    {
+        get;
+
+        init
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                field = null;
+                return;
+            }
+
+            var words = value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            int[] indexes = new int[words.Length];
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                var word  = words[i];
+                var index = Data.ValidGuesses.IndexOf(word);
+
+                if (index is -1)
+                    throw new ArgumentException($"{word} is not a valid wordle guess and cannot be marked as required.", nameof(RequiredWords));
+
+                indexes[i] = index;
+            }
+
+            field                = value;
+            RequiredWordsIndexes = indexes;
+        }
+    }
+
+    public int[]? RequiredWordsIndexes { get; private init; }
+
     [Option("top", Default = 10, HelpText = "How many results to show when exporting data.")]
     public int TopResults { get; init; }
 
