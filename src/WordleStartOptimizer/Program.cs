@@ -14,13 +14,13 @@ internal class Program
 
     public static async Task Main(string[] args)
     {
-        try { await CheckVersionAsync(); }
-        catch (Exception ex) { }
-
         var parserResult = Parser.Default.ParseArguments<Options>(args);
 
         if(parserResult.Errors.Any())
             return;
+
+        try { await CheckVersionAsync(); }
+        catch (Exception ex) { }
 
         Options = parserResult.Value;
 
@@ -64,7 +64,25 @@ internal class Program
                               var arr = Enumerable.Repeat(0, Options.SetSize).ToArray();
                               arr[0] = i;
 
-                              Search(i + 1, Data.ProcessedGuesses[i].Mask, 1, arr, candidates);
+
+                              int setIndex = 1;
+
+                              if (Options.RequiredWordsIndexes is not null)
+                              {
+
+                                  foreach (var wordIndex in Options.RequiredWordsIndexes)
+                                  {
+                                      arr[setIndex] =  wordIndex;
+
+                                      if((Data.ProcessedGuesses[wordIndex].Mask & mask) > 0)
+                                          return;
+
+                                      mask |= Data.ProcessedGuesses[wordIndex].Mask;
+                                      setIndex++;
+                                  }
+                              }
+
+                              Search(i + 1, mask, setIndex, arr, candidates);
 
                               var progress = (double)completed / Data.ProcessedGuesses.Length;
 
@@ -81,6 +99,11 @@ internal class Program
                       candidateTask.Description($"Found [Aqua]{candidates.Count:N0}[/] candidates.");
                       candidateTask.Value(1);
                       candidateTask.StopTask();
+
+                      if (candidates.Count is 0)
+                      {
+                          return;
+                      }
 
                       completed    = 0;
                       lastProgress = 0;
@@ -117,6 +140,19 @@ internal class Program
                       scoringTask.StopTask();
                   });
 
+        if (scoredSets.IsEmpty)
+        {
+            AnsiConsole.MarkupLine("[red]Found no valid sets with current configuration.[/]");
+            return;
+        }
+
+        if (scoredSets.Count is 1)
+        {
+            AnsiConsole.MarkupLine("[Yellow]Only found one valid set with configuration.[/]");
+            AnsiConsole.MarkupLine($"{string.Join(", ", scoredSets.First().Words.Select(x => $"[Aqua]{x}[/]") )}");
+            return;
+        }
+
         if (Options.VerboseScoring)
         {
             AnsiConsole.Write(new Rule("Global Stat Breakdown").LeftJustified());
@@ -144,7 +180,7 @@ internal class Program
             AnsiConsole.MarkupLine($"{i + 1}: {string.Join(", ", set.Words.Select(x => $"[Aqua]{x}[/]") )}");
             AnsiConsole.MarkupLine($"Total Score: [green]{set.Score:N3}[/]");
 
-            if(Options.VerboseScoring)
+            if (Options.VerboseScoring)
             {
                 string ColorNormalizedScore(double s)
                 {
