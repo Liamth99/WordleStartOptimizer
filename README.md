@@ -17,6 +17,7 @@ Rather than ranking individual words, Wordle Start Optimizer searches combinatio
 * Detailed scoring breakdowns
 * Optional letter frequency visualization
 * Finds optimal opening sets instead of relying on "vibes"
+* Generate sets with required words
 
 ## How It Works
 
@@ -161,6 +162,13 @@ Generate an opening set that promotes anagrams:
 
 ```bash
 WordleStartOptimizer 4 -y 1.0 -g -0.3 -e 0.5
+```
+
+
+Generate a 3 word set with the words Adieu and Torch
+
+```bash
+WordleStartOptimizer 3 --requiredWords "adieu torch"
 ```
 
 ###### AI disclaimer: I used AI to assist with documentation and licensing.
