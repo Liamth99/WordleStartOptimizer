@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using System.Reflection;
+using System.Text.Json.Nodes;
 using CommandLine;
 using WordleStartOptimizer.Models;
 using Spectre.Console;
@@ -10,8 +12,11 @@ internal class Program
     public static  Options Options { get; private set; } = null!;
     private static Lock    _reportingLock = new();
 
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
+        try { await CheckVersionAsync(); }
+        catch (Exception ex) { }
+
         var parserResult = Parser.Default.ParseArguments<Options>(args);
 
         if(parserResult.Errors.Any())
@@ -271,6 +276,24 @@ internal class Program
             chosen[depth] = i;
 
             Search(i + 1, usedMask | mask, depth + 1, chosen, results);
+        }
+    }
+
+    private static async Task CheckVersionAsync()
+    {
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("WordleStartOptimizer-VersionCheck");
+
+        var s    = await httpClient.GetStringAsync("https://api.github.com/repos/Liamth99/WordleStartOptimizer/releases/latest");
+        var json = JsonNode.Parse(s);
+
+        var version = json!["name"];
+
+        var currentVersion = $"v{Assembly.GetAssembly(typeof(Program))!.GetName().Version!.ToString(3)}";
+
+        if (currentVersion != version!.ToString())
+        {
+            AnsiConsole.MarkupLine($"New version available to download at {json["html_url"]}");
         }
     }
 }
