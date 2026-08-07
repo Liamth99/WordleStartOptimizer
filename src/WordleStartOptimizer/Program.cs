@@ -158,8 +158,28 @@ internal class Program
 
         if (scoredSets.Count is 1)
         {
+            var set = scoredSets.First();
+
             AnsiConsole.MarkupLine("[Yellow]Only found one valid set with configuration.[/]");
-            AnsiConsole.MarkupLine($"{string.Join(", ", scoredSets.First().Words.Select(x => $"[Aqua]{x}[/]") )}");
+            AnsiConsole.MarkupLine($"{string.Join(", ", set.Words.Select(x => $"[Aqua]{x}[/]") )}");
+
+            if (Options.VerboseScoring)
+            {
+                var table = new Table();
+
+                table.AddColumns("Metric", "Value");
+                table.AddRow("Entropy", $"{set.Entropy:N5}");
+                table.AddRow("Expected Remaining", $"{set.ExpectedRemaining:N1}");
+                table.AddRow("Worst Case Remaining", $"{set.WorstCaseRemaining:N0}");
+                table.AddRow("Green Letter Score", $"{set.Green:N1}");
+                table.AddRow("Yellow Letter Score", $"{set.Yellow:N1}");
+                table.AddRow("Vowel Score", $"{set.VowelCount:N0}");
+                table.AddRow("Letter Distribution Score", $"{set.LetterDistributionOrder:N3}");
+                table.AddRow("Valid Answers", $"{set.ValidAnswers:N0}");
+
+                AnsiConsole.Write(table);
+            }
+
             return;
         }
 
@@ -192,11 +212,6 @@ internal class Program
 
             if (Options.VerboseScoring)
             {
-                string ColorNormalizedScore(double s)
-                {
-                    return $"[{(s < .25 ? "red" : s < .75 ? "yellow" : "green")}]{s:N3}[/]";
-                }
-
                 var table = new Table();
 
                 table.AddColumns(
@@ -286,6 +301,11 @@ internal class Program
 
             AnsiConsole.WriteLine();
         }
+    }
+
+    private static string ColorNormalizedScore(double s)
+    {
+        return $"[{(s < .25 ? "red" : s < .75 ? "yellow" : "green")}]{s:N3}[/]";
     }
 
     private static void Search(int start, int usedMask, int depth, int[] chosen, ConcurrentBag<CandidateSet> results)
