@@ -36,6 +36,14 @@ internal class Program
         {
             AnsiConsole.MarkupLine($"Using required words: {string.Join(", ", Options.RequiredWordsIndexes.Select(x => $"[cyan]{Data.ValidGuesses[x]}[/]"))}");
         }
+        if (Options.RequiredLetters is not null)
+        {
+            AnsiConsole.MarkupLine($"Using required letters: {string.Join(", ", Options.RequiredLetters.Select(x => $"[cyan]{x}[/]"))}");
+        }
+        if (Options.BlockedLetters is not null)
+        {
+            AnsiConsole.MarkupLine($"Excluding blocked letters: {string.Join(", ", Options.BlockedLetters.Select(x => $"[red]{x}[/]"))}");
+        }
 
         ConcurrentBag<CandidateSet> candidates = [];
         ConcurrentBag<WordSet> scoredSets = [];
@@ -320,6 +328,12 @@ internal class Program
                 preScore += Data.WordEntropies[chosen[i]];
                 words[i] =  chosen[i];
             }
+
+            if (Options.RequiredLetterMask is not null && (Options.RequiredLetterMask & usedMask) != Options.RequiredLetterMask)
+                return;
+
+            if (Options.BlockedLetterMask is not null && (Options.BlockedLetterMask & usedMask) > 0)
+                return;
 
             results.Add(
                 new CandidateSet()
