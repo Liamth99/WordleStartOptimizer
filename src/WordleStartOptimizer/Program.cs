@@ -36,6 +36,10 @@ internal class Program
         {
             AnsiConsole.MarkupLine($"Using required words: {string.Join(", ", Options.RequiredWordsIndexes.Select(x => $"[cyan]{Data.ValidGuesses[x]}[/]"))}");
         }
+        if (Options.RequiredLetters is not null)
+        {
+            AnsiConsole.MarkupLine($"Using required letters: {string.Join(", ", Options.RequiredLetters.Select(x => $"[cyan]{x}[/]"))}");
+        }
 
         ConcurrentBag<CandidateSet> candidates = [];
         ConcurrentBag<WordSet> scoredSets = [];
@@ -320,6 +324,9 @@ internal class Program
                 preScore += Data.WordEntropies[chosen[i]];
                 words[i] =  chosen[i];
             }
+
+            if(Options.RequiredLetterMask is not null && (Options.RequiredLetterMask & usedMask) != Options.RequiredLetterMask)
+                return;
 
             results.Add(
                 new CandidateSet()

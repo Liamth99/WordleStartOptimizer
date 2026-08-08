@@ -18,6 +18,7 @@ Rather than ranking individual words, Wordle Start Optimizer searches combinatio
 * Optional letter frequency visualization
 * Finds optimal opening sets instead of relying on "vibes"
 * Generate sets with required words
+* Generate sets with required letters
 
 ## How It Works
 
@@ -169,6 +170,12 @@ Generate a 3 word set with the words Adieu and Torch
 
 ```bash
 WordleStartOptimizer 3 --requiredWords "adieu torch"
+```
+
+Generate a 3 word set with some really terrible letters
+
+```bash
+WordleStartOptimizer 3 --requiredLetters zxqj
 ```
 
 ###### AI disclaimer: I used AI to assist with documentation and licensing.

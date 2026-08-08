@@ -90,6 +90,35 @@ public class Options
 
     public int[]? RequiredWordsIndexes { get; private init; }
 
+    [Option("requiredLetters", Default = null, HelpText = "List of required letters to include in the generated starting word set.")]
+    public string? RequiredLetters
+    {
+        get;
+
+        init
+        {
+            if (value is null)
+            {
+                field = null;
+                return;
+            }
+
+            RequiredLetterMask = 0;
+
+            foreach (char c in value)
+            {
+                if (!char.IsLetter(c))
+                    throw new ArgumentException($"`{c}` is not a valid letter to mark as required.", nameof(RequiredLetters));
+
+                RequiredLetterMask |= 1 << (char.ToLower(c) - 'a' + 1);
+            }
+
+            field = value;
+        }
+    }
+
+    public int? RequiredLetterMask { get; private init; }
+
     [Option("top", Default = 10, HelpText = "How many results to show when exporting data.")]
     public int TopResults { get; init; }
 
