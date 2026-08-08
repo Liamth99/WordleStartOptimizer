@@ -178,4 +178,10 @@ Generate a 3 word set with some really terrible letters
 WordleStartOptimizer 3 --requiredLetters zxqj
 ```
 
+Generate a word with no vowels
+
+```bash
+WordleStartOptimizer 1 --blockedLetters aeiouy
+```
+
 ###### AI disclaimer: I used AI to assist with documentation and licensing.
