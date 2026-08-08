@@ -16,7 +16,6 @@ Rather than ranking individual words, Wordle Start Optimizer searches combinatio
 * Adjustable search effort to trade accuracy for speed
 * Detailed scoring breakdowns
 * Optional letter frequency visualization
-* Finds optimal opening sets instead of relying on "vibes"
 * Generate sets with required words
 * Generate sets with required letters
 
@@ -30,17 +29,17 @@ The program generates possible opening word combinations while enforcing one imp
 
 > No letter may appear more than once across the entire starting set.
 
-Each candidate receives a quick pre-score based on the combined entropy of its words. This allows weaker candidates to be discarded before expensive evaluation.
+This reducess the posible candidate count to something more manageable. Then each candidate receives a quick pre-score based on the combined entropy of its words. This allows weaker candidates to be discarded before expensive evaluation.
 
 ### Full Scoring
 
 The strongest candidates are evaluated against the Wordle answer list.
 
-For every possible answer, the program calculates the feedback pattern produced by the opening set. These patterns are then used to measure how effectively the opening words reduce uncertainty.
+For every possible answer, the program simulates playing the opening words and calculates the feedback patterns produced. These patterns are then used to measure how effectively the opening words reduce uncertainty making the game easier by reducing the number of possible remaining valid words.
 
 In other words:
 
-> It spends thousands of guesses so you don't have to.
+> It spends thousands of guesses, eliminating possibility early so you don't have to.
 
 ## Scoring
 
@@ -48,11 +47,13 @@ Each metric is normalized between **0 and 1**, multiplied by its configured weig
 
 The default scoring model attempts to balance mathematical information gain with practical human play.
 
+> note: this score is only meaningful in the run it is calculated for, you should not compare scores between different runs, instead use the raw stats which can be shown by using the `--verboseScoring` flag.
+
 ### Entropy
 
 Measures how evenly the opening set divides possible answers.
 
-Higher entropy means the guesses produce more varied feedback patterns, giving more useful information.
+Higher entropy means the guesses produce more varied feedback patterns, giving more useful information. This is how most tools determine the "best" opening words.
 
 Higher is better.
 
