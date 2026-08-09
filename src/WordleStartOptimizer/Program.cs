@@ -74,7 +74,7 @@ internal class Program
 
                               var mask = Data.ProcessedGuesses[i].Mask;
 
-                              if (mask is -1)
+                              if (mask < 0)
                               {
                                   return;
                               }
@@ -350,7 +350,7 @@ internal class Program
         {
             var mask = Data.ProcessedGuesses[i].Mask;
 
-            if (mask is -1 || (usedMask & mask) is not 0)
+            if (mask < 0 || (usedMask & mask) is not 0)
                 continue;
 
             chosen[depth] = i;

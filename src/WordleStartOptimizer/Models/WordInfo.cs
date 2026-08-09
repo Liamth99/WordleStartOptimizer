@@ -26,13 +26,18 @@ public readonly struct WordInfo
 
         foreach (char c in word)
         {
-            int bit = c - 'a' + 1;
+            int bit = 1 << (c - 'a' + 1);
 
             // duplicate letter in the same word, make negative to mark as to be ignored later
-            if ((mask & (1 << bit)) is not 0)
-                return -1;
+            if ((mask & bit) is not 0)
+            {
+                mask |= bit;
 
-            mask |= 1 << bit;
+                if (mask > 0)
+                    mask = -mask;
+            }
+            else
+                mask |= bit;
         }
 
         return mask;
