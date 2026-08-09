@@ -87,32 +87,55 @@ public static partial class Data
 
                          for (int j = 0; j < ProcessedGuesses.Length; j++)
                          {
-                             int code       = 0;
-                             int multiplier = 1;
+                             byte code       = 0;
+                             int  multiplier = 1;
 
-                             WordInfo answer = ProcessedGuesses[j];
-                             int       state;
+                             WordInfo answer    = ProcessedGuesses[j];
+                             int[]    remaining = new int[26];
+                             int[]    states    = new int[5];
 
-                             for (int charI = 0; charI < guess.Word.Length; charI++)
+                             for (int k = 0; k < 5; k++)
+                             {
+                                 remaining[answer.Word[k] - 'a']++;
+                             }
+
+                             // Calc greens
+                             for (int charI = 0; charI < 5; charI++)
                              {
                                  char c = guess.Word[charI];
 
                                  if (c == answer.Word[charI])
                                  {
                                      GreenLetters[i]++;
-                                     state = 2;
+                                     states[charI] = 2;
+                                     remaining[c - 'a']--;
                                  }
-                                 else if ((answer.Mask & 1 << (c - 'a' + 1)) != 0)
+                             }
+
+                             // Calc rest
+                             for (int charI = 0; charI < 5; charI++)
+                             {
+                                 if(states[charI] is 2)
+                                     continue;
+
+                                 char c = guess.Word[charI];
+
+                                 if (remaining[c - 'a'] > 0)
                                  {
+                                     states[charI] = 1;
                                      YellowLetters[i]++;
-                                     state = 1;
+                                     remaining[c - 'a']--;
                                  }
                                  else
                                  {
-                                     state = 0;
+                                     states[charI] = 0;
                                  }
+                             }
 
-                                 code       += state * multiplier;
+
+                             foreach (int state in states)
+                             {
+                                 code       += (byte)(state * multiplier);
                                  multiplier *= 3;
                              }
 
