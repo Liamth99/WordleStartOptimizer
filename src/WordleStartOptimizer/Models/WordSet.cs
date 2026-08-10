@@ -22,7 +22,7 @@ public sealed class WordSet
     private static Dictionary<long, int>? _patternCountCache;
     private static Lock _lock = new();
 
-    public WordSet(int[] wordIndexes)
+    public WordSet(short[] wordIndexes)
     {
         if (_patternCountCache is null)
             _patternCountCache = new Dictionary<long, int>(Data.ValidGuesses.Length);
