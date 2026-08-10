@@ -6,7 +6,6 @@ A command-line tool that searches for high-quality sets of Wordle opening words.
 
 Rather than ranking individual words, Wordle Start Optimizer searches combinations of 2–5 words and scores them using a weighted combination of entropy, solution-space reduction, letter coverage, and other heuristics.
 
-
 ## Features
 
 * Searches every valid combination of **2–5 starting words**
@@ -56,6 +55,8 @@ Measures how evenly the opening set divides possible answers.
 Higher entropy means the guesses produce more varied feedback patterns, giving more useful information. This is how most tools determine the "best" opening words.
 
 Higher is better.
+
+For more information I'd highly recommend watching [Solving Wordle using information theory | 3Blue1Brown](https://www.youtube.com/watch?v=v68zYyaEmEA).
 
 ---
 
