@@ -69,8 +69,8 @@ public class Options
                 return;
             }
 
-            var words = value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            int[] indexes = new int[words.Length];
+            var     words   = value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            short[] indexes = new short[words.Length];
 
             for (int i = 0; i < words.Length; i++)
             {
@@ -80,7 +80,7 @@ public class Options
                 if (index is -1)
                     throw new ArgumentException($"{word} is not a valid wordle guess and cannot be marked as required.", nameof(RequiredWords));
 
-                indexes[i] = index;
+                indexes[i] = (short)index;
             }
 
             field                = value;
@@ -88,7 +88,7 @@ public class Options
         }
     }
 
-    public int[]? RequiredWordsIndexes { get; private init; }
+    public short[]? RequiredWordsIndexes { get; private init; }
 
     [Option("requiredLetters", Default = null, HelpText = "List of required letters to include in the generated starting word set.")]
     public string? RequiredLetters

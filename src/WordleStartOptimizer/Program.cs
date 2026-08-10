@@ -79,9 +79,8 @@ internal class Program
                                   return;
                               }
 
-                              var arr = Enumerable.Repeat(0, Options.SetSize).ToArray();
-                              arr[0] = i;
-
+                              var arr = Enumerable.Repeat((short)0, Options.SetSize).ToArray();
+                              arr[0] = (short)i;
 
                               int setIndex = 1;
 
@@ -90,7 +89,7 @@ internal class Program
 
                                   foreach (var wordIndex in Options.RequiredWordsIndexes)
                                   {
-                                      arr[setIndex] =  wordIndex;
+                                      arr[setIndex] = wordIndex;
 
                                       if((Data.ProcessedGuesses[wordIndex].Mask & mask) > 0)
                                           return;
@@ -100,7 +99,7 @@ internal class Program
                                   }
                               }
 
-                              Search(i + 1, mask, setIndex, arr, candidates);
+                              Search((short)(i + 1), mask, setIndex, arr, candidates);
 
                               var progress = (double)completed / Data.ProcessedGuesses.Length;
 
@@ -316,12 +315,12 @@ internal class Program
         return $"[{(s < .25 ? "red" : s < .75 ? "yellow" : "green")}]{s:N3}[/]";
     }
 
-    private static void Search(int start, int usedMask, int depth, int[] chosen, ConcurrentBag<CandidateSet> results)
+    private static void Search(short start, int usedMask, int depth, short[] chosen, ConcurrentBag<CandidateSet> results)
     {
         if (depth == Options.SetSize)
         {
             double preScore = 0;
-            var    words    = new int[Options.SetSize];
+            var    words    = new short[Options.SetSize];
 
             for (int i = 0; i < chosen.Length; i++)
             {
@@ -346,7 +345,7 @@ internal class Program
             return;
         }
 
-        for (int i = start; i < Data.ProcessedGuesses.Length; i++)
+        for (short i = start; i < Data.ProcessedGuesses.Length; i++)
         {
             var mask = Data.ProcessedGuesses[i].Mask;
 
@@ -355,7 +354,7 @@ internal class Program
 
             chosen[depth] = i;
 
-            Search(i + 1, usedMask | mask, depth + 1, chosen, results);
+            Search((short)(i + 1), usedMask | mask, depth + 1, chosen, results);
         }
     }
 

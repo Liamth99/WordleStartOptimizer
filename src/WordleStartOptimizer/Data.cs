@@ -21,7 +21,7 @@ public static partial class Data
 
     /// <summary>Feedback pattern for each answer/guess pair encoded in base 3.</summary>
     /// <remarks>indexed by guess then answer</remarks>
-    public static int[,] PatternMatrix = new int[0, 0];
+    public static byte[,] PatternMatrix = new byte[0, 0];
 
     /// Represents the theoretical maximum entropy achievable for the set of valid guesses.
     /// This value is calculated as the base-2 logarithm of the total number of valid guesses.
@@ -57,7 +57,7 @@ public static partial class Data
         YellowLetters = new int[ProcessedGuesses.Length];
         WordEntropies = new double[ProcessedGuesses.Length];
 
-        PatternMatrix = new int[ProcessedGuesses.Length, ProcessedGuesses.Length];
+        PatternMatrix = new byte[ProcessedGuesses.Length, ProcessedGuesses.Length];
 
         MaxPossibleEntropy = Math.Log2(ValidGuesses.Length);
 
@@ -131,7 +131,6 @@ public static partial class Data
                                      states[charI] = 0;
                                  }
                              }
-
 
                              foreach (int state in states)
                              {
