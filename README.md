@@ -78,7 +78,7 @@ Lower is better.
 
 ---
 
-### Green Letters
+### Avg Green Letters
 
 Rewards guesses that are likely to reveal correctly positioned letters.
 
@@ -86,7 +86,7 @@ Higher is better.
 
 ---
 
-### Yellow Letters
+### Avg Yellow Letters
 
 Rewards guesses that reveal correct letters in incorrect positions.
 

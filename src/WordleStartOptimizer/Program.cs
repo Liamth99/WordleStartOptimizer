@@ -175,14 +175,14 @@ internal class Program
                 var table = new Table();
 
                 table.AddColumns("Metric", "Value");
-                table.AddRow("Entropy", $"{set.Entropy:N5}");
-                table.AddRow("Expected Remaining", $"{set.ExpectedRemaining:N1}");
-                table.AddRow("Worst Case Remaining", $"{set.WorstCaseRemaining:N0}");
-                table.AddRow("Green Letter Score", $"{set.Green:N1}");
-                table.AddRow("Yellow Letter Score", $"{set.Yellow:N1}");
-                table.AddRow("Vowel Score", $"{set.VowelCount:N0}");
+                table.AddRow("Entropy",                   $"{set.Entropy:N5}");
+                table.AddRow("Expected Remaining",        $"{set.ExpectedRemaining:N1}");
+                table.AddRow("Worst Case Remaining",      $"{set.WorstCaseRemaining:N0}");
+                table.AddRow("Avg Green Letters",         $"{set.AvgGreen:N2}");
+                table.AddRow("Avg Yellow Letters",        $"{set.AvgYellow:N2}");
+                table.AddRow("Vowel Score",               $"{set.VowelCount:N0}");
                 table.AddRow("Letter Distribution Score", $"{set.LetterDistributionOrder:N3}");
-                table.AddRow("Valid Answers", $"{set.ValidAnswers:N0}");
+                table.AddRow("Valid Answers",             $"{set.ValidAnswers:N0}");
 
                 AnsiConsole.Write(table);
             }
@@ -197,8 +197,8 @@ internal class Program
             AnsiConsole.MarkupLine($"Entropy: [yellow]{WordSet.MinEntropy:N5}[/] -> [green]{WordSet.MaxEntropy:N5}[/]");
             AnsiConsole.MarkupLine($"Expected Remaining: [yellow]{WordSet.MaxExpectedRemaining:N1}[/] -> [green]{WordSet.MinExpectedRemaining:N1}[/]");
             AnsiConsole.MarkupLine($"Worst Case Remaining: [yellow]{WordSet.MaxWorstCaseRemaining:N0}[/] -> [green]{WordSet.MinWorstCaseRemaining:N0}[/]");
-            AnsiConsole.MarkupLine($"Green: [yellow]{WordSet.MinGreen:N1}[/] -> [green]{WordSet.MaxGreen:N1}[/]");
-            AnsiConsole.MarkupLine($"Yellow: [yellow]{WordSet.MinYellow:N1}[/] -> [green]{WordSet.MaxYellow:N1}[/]");
+            AnsiConsole.MarkupLine($"Avg Greens: [yellow]{WordSet.MinGreen:N2}[/] -> [green]{WordSet.MaxGreen:N2}[/]");
+            AnsiConsole.MarkupLine($"Avg Yellows: [yellow]{WordSet.MinYellow:N2}[/] -> [green]{WordSet.MaxYellow:N2}[/]");
             AnsiConsole.MarkupLine($"Letter Distribution Order: [yellow]{WordSet.MinLetterDistributionOrder:N1}[/] -> [green]{WordSet.MaxLetterDistributionOrder:N1}[/]");
             AnsiConsole.WriteLine();
         }
@@ -250,15 +250,15 @@ internal class Program
                     $"{set.NormalizedWorstCaseRemaining * Options.WorstCaseRemainingModifier:N3}");
 
                 table.AddRow(
-                    "Green Letter Score",
-                    $"{set.Green:N1}",
+                    "Avg Green Letters",
+                    $"{set.AvgGreen:N2}",
                     ColorNormalizedScore(set.NormalizedGreen),
                     $"{Options.GreenLetterModifier:N2}",
                     $"{set.NormalizedGreen * Options.GreenLetterModifier:N3}");
 
                 table.AddRow(
-                    "Yellow Letter Score",
-                    $"{set.Yellow:N1}",
+                    "Avg Yellow Letters",
+                    $"{set.AvgYellow:N2}",
                     ColorNormalizedScore(set.NormalizedYellow),
                     $"{Options.YellowLetterModifier:N2}",
                     $"{set.NormalizedYellow * Options.YellowLetterModifier:N3}");

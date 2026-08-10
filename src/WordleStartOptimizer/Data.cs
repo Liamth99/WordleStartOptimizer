@@ -10,10 +10,10 @@ public static partial class Data
     public static WordInfo[] ProcessedGuesses = [];
 
     /// The counts of correct letters in their correct positions (green letters) for each possible guess.
-    public static int[] GreenLetters = [];
+    public static double[] GreenLetters = [];
 
     /// Tracks the count of yellow (misplaced but present) letters for each valid guess.
-    public static int[] YellowLetters = [];
+    public static double[] YellowLetters = [];
 
     /// Precomputed entropy values for each valid guess, calculated based on the
     /// distribution of response patterns to maximize information gain during gameplay.
@@ -53,8 +53,8 @@ public static partial class Data
                            .Select(word => new WordInfo(word))
                            .ToArray();
 
-        GreenLetters  = new int[ProcessedGuesses.Length];
-        YellowLetters = new int[ProcessedGuesses.Length];
+        GreenLetters  = new double[ProcessedGuesses.Length];
+        YellowLetters = new double[ProcessedGuesses.Length];
         WordEntropies = new double[ProcessedGuesses.Length];
 
         PatternMatrix = new byte[ProcessedGuesses.Length, ProcessedGuesses.Length];
@@ -106,8 +106,8 @@ public static partial class Data
 
                                  if (c == answer.Word[charI])
                                  {
-                                     GreenLetters[i]++;
-                                     states[charI] = 2;
+                                     GreenLetters[i] += denominator;
+                                     states[charI]   =  2;
                                      remaining[c - 'a']--;
                                  }
                              }
@@ -123,7 +123,7 @@ public static partial class Data
                                  if (remaining[c - 'a'] > 0)
                                  {
                                      states[charI] = 1;
-                                     YellowLetters[i]++;
+                                     YellowLetters[i] += denominator;
                                      remaining[c - 'a']--;
                                  }
                                  else
