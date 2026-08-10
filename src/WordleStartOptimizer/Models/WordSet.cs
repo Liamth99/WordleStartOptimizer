@@ -44,16 +44,16 @@ public sealed class WordSet
                 _patternCountCache[combinedPatternCode]++;
         }
 
-        Green        = 0;
-        Yellow       = 0;
+        AvgGreen     = 0;
+        AvgYellow    = 0;
         ValidAnswers = 0;
 
         for (int i = 0; i < wordIndexes.Length; i++)
         {
             var index = wordIndexes[i];
 
-            Green  += Data.GreenLetters[index];
-            Yellow += Data.YellowLetters[index];
+            AvgGreen  += Data.GreenLetters[index];
+            AvgYellow += Data.YellowLetters[index];
 
             if (Data.WordIsValidAnswer[index])
                 ValidAnswers++;
@@ -90,11 +90,11 @@ public sealed class WordSet
 
         lock (_lock)
         {
-            if (Green < MinGreen)
-                MinGreen = Green;
+            if (AvgGreen < MinGreen)
+                MinGreen = AvgGreen;
 
-            if (Green > MaxGreen)
-                MaxGreen = Green;
+            if (AvgGreen > MaxGreen)
+                MaxGreen = AvgGreen;
 
             if (Entropy < MinEntropy)
                 MinEntropy = Entropy;
@@ -102,11 +102,11 @@ public sealed class WordSet
             if (Entropy > MaxEntropy)
                 MaxEntropy = Entropy;
 
-            if (Yellow < MinYellow)
-                MinYellow = Yellow;
+            if (AvgYellow < MinYellow)
+                MinYellow = AvgYellow;
 
-            if (Yellow > MaxYellow)
-                MaxYellow = Yellow;
+            if (AvgYellow > MaxYellow)
+                MaxYellow = AvgYellow;
 
             if (ExpectedRemaining < MinExpectedRemaining)
                 MinExpectedRemaining = ExpectedRemaining;
@@ -136,16 +136,16 @@ public sealed class WordSet
     public static double MinEntropy    { get; private set; } = double.MaxValue;
     public static double MaxEntropy    { get; private set; }
 
-    public        int    Green       { get; private set; }
-    public        double NormalizedGreen => (Green - MinGreen) / (double)(MaxGreen - MinGreen);
-    public static int    MinGreen    { get; private set; } = int.MaxValue;
-    public static int    MaxGreen    { get; private set; }
+    public        double AvgGreen        { get; private set; }
+    public        double NormalizedGreen => (AvgGreen - MinGreen) / (MaxGreen - MinGreen);
+    public static double MinGreen        { get; private set; } = double.MaxValue;
+    public static double MaxGreen        { get; private set; }
 
 
-    public        int    Yellow       { get; private set; }
-    public        double NormalizedYellow => (Yellow - MinYellow) / (double)(MaxYellow - MinYellow);
-    public static int    MinYellow    { get; private set; } = int.MaxValue;
-    public static int    MaxYellow    { get; private set; }
+    public        double AvgYellow        { get; private set; }
+    public        double NormalizedYellow => (AvgYellow - MinYellow) / (MaxYellow - MinYellow);
+    public static double MinYellow        { get; private set; } = double.MaxValue;
+    public static double MaxYellow        { get; private set; }
 
 
     public readonly double ExpectedRemaining;
