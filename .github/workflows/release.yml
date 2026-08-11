@@ -34,6 +34,9 @@ jobs:
       - name: Restore
         run: dotnet restore
 
+      - name: Test
+        run: dotnet test --configuration Debug
+
       - name: Publish
         run: |
           dotnet publish \
