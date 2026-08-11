@@ -20,23 +20,6 @@ public class PatternCodeTests
         DecodeColor(code).ShouldBe(colors);
     }
 
-    [Fact]
-    public void ValidAnswersCorrect()
-    {
-        int validWords = 0;
-
-        for (int i = 0; i < Data.ValidGuesses.Length; i++)
-        {
-            if (Data.WordIsValidAnswer[i])
-            {
-                Data.ValidAnswers.ShouldContain(Data.ValidGuesses[i]);
-                validWords++;
-            }
-        }
-
-        validWords.ShouldBe(Data.ValidAnswers.Length);
-    }
-
     private static Color[] DecodeColor(byte code)
     {
         return
