@@ -50,9 +50,9 @@ jobs:
           cd publish/${{ matrix.rid }}
           
           if [[ "${{ matrix.rid }}" == win-* ]]; then
-            zip -r ../../${{ matrix.rid }}.zip .
+            zip -r ../../WordleStartOptimizer-${VERSION}-${{ matrix.rid }}.zip . -x '*.pdb'
           else
-            tar -czf ../../${{ matrix.rid }}.tar.gz .
+            tar --exclude='*.pdb' -czf ../../WordleStartOptimizer-${VERSION}-${{ matrix.rid }}.tar.gz .
           fi
 
       - name: Upload artifact
