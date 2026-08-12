@@ -39,7 +39,7 @@ jobs:
 
       - name: Publish
         run: |
-          dotnet publish \
+          dotnet publish ./src/WordleStartOptimizer/WordleStartOptimizer.csproj \
             /p:Version=${VERSION} \
             -c Release \
             -r ${{ matrix.rid }} \
