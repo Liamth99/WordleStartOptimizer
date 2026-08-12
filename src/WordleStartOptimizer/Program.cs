@@ -48,7 +48,7 @@ internal class Program
         ConcurrentBag<CandidateSet> candidates = [];
         ConcurrentBag<WordSet> scoredSets = [];
 
-        Data.Initialize();
+        Data.Initialize(Options.ThreadCount);
 
         AnsiConsole
            .Progress()

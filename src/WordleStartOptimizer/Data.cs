@@ -47,7 +47,7 @@ public static partial class Data
     /// optimizing Wordle strategies.
     public static double[] EntropyContributionByCount = [];
 
-    public static void Initialize()
+    public static void Initialize(int threadCount)
     {
         ProcessedGuesses = ValidGuesses
                            .Select(word => new WordInfo(word))
@@ -71,7 +71,7 @@ public static partial class Data
                      ValidGuesses.Length,
                      new ParallelOptions()
                     {
-                        MaxDegreeOfParallelism = Program.Options.ThreadCount,
+                        MaxDegreeOfParallelism = threadCount,
                     },
                      i =>
                      {
@@ -145,9 +145,6 @@ public static partial class Data
 
                          for (int answerIndex = 0; answerIndex < ProcessedGuesses.Length; answerIndex++)
                          {
-                             if(ProcessedGuesses[answerIndex].Mask < 0)
-                                 continue;
-
                              int patternCode = PatternMatrix[i, answerIndex];
                              patternCounts[patternCode]++;
                          }
