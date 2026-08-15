@@ -110,7 +110,7 @@ public class Options
                 if (!char.IsLetter(c))
                     throw new ArgumentException($"`{c}` is not a valid letter to mark as required.", nameof(RequiredLetters));
 
-                RequiredLetterMask |= 1 << (char.ToLower(c) - 'a' + 1);
+                RequiredLetterMask |= 1 << (char.ToLower(c) - 'a');
             }
 
             field = value;
@@ -139,7 +139,7 @@ public class Options
                 if (!char.IsLetter(c))
                     throw new ArgumentException($"`{c}` is not a valid letter to mark as blocked.", nameof(BlockedLetters));
 
-                BlockedLetterMask |= 1 << (char.ToLower(c) - 'a' + 1);
+                BlockedLetterMask |= 1 << (char.ToLower(c) - 'a');
             }
 
             field = value;
