@@ -40,24 +40,155 @@ public readonly struct WordMask : IEqualityComparer<WordMask>, IEquatable<WordMa
     {
         Mask       = 0;
         LetterMask = 0;
-        for (int i = 0; i < word.Length; i++)
+        for (int i = 0; i < 5; i++)
         {
             char c = word[i];
             Mask       |= (uint)(((c - 'a' + 1) & 0x1FU) << (i * 5));
 
-            int letterBit = 1 << (c - 'a' + 1);
+            int letterBit = 1 << (c - 'a');
 
-            // duplicate letter in the same word, make negative to mark as to be ignored later
-            if ((LetterMask & letterBit) is not 0)
+            if ((LetterMask & letterBit) is not 0) // duplicate letter in the same word, make negative to mark as to be ignored later
             {
                 LetterMask |= letterBit;
 
                 if (LetterMask > 0)
+                    LetterMask = -LetterMask;
+            }
+            else
+                LetterMask |= letterBit;
+        }
+    }
+
+    public static WordMask FromMaskPattern(string pattern)
+    {
+        uint mask       = 0;
+        int  letterMask = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            char c = pattern[i];
+
+            if(c is '*')
+                continue;
+
+            mask |= (uint)(((c - 'a' + 1) & 0x1F) << (i * 5));
+
+            int letterBit = 1 << (c - 'a');
+
+            if ((letterMask & letterBit) is not 0) // duplicate letter in the same word, make negative to mark as to be ignored later
+            {
+                letterMask |= letterBit;
+
+                if (letterMask > 0)
                     letterBit = -letterBit;
             }
 
-            LetterMask |= letterBit;
+            letterMask |= letterBit;
         }
+
+        return new WordMask(mask, letterMask);
+    }
+
+    public static WordMask operator &(WordMask left, WordMask right)
+    {
+        uint mask       = 0;
+        int  letterMask = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            var leftVal  = (left.Mask >> (i * 5)) & 0x1F;
+            var rightVal = (right.Mask >> (i * 5)) & 0x1F;
+
+            if(leftVal == rightVal)
+                mask |= leftVal << (i * 5);
+            else
+                continue;
+
+            int letterBit = 1 << (left[i] - 'a');
+
+            if ((letterMask & letterBit) is not 0) // duplicate letter in the same word, make negative to mark as to be ignored later
+            {
+                letterMask |= letterBit;
+
+                if (letterMask > 0)
+                    letterBit = -letterBit;
+            }
+
+            letterMask |= letterBit;
+        }
+
+        return new WordMask(mask, letterMask);
+    }
+
+    public bool AllCombinedMatchesPattern(IEnumerable<WordMask> masks)
+    {
+        if (Mask is 0)
+            return true;
+
+        var chars = new char[] {'`', '`', '`', '`', '`',};
+        foreach (WordMask mask in masks)
+        {
+            var currentMask = mask & this;
+
+            for (int i = 0; i < 5; i++)
+            {
+                if(this[i] is '`')
+                    continue;
+
+                char c = currentMask.Chars[i];
+                if (this[i] is not '`' && c is not '`')
+                    chars[i] = c;
+            }
+        }
+
+        return this == new WordMask(new string(chars));
+    }
+
+    public bool TryMerge(WordMask other, out WordMask result)
+    {
+        uint mask       = 0;
+        int  letterMask = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            var leftVal  = (int)((Mask >> (i * 5)) & 0x1F);
+            var rightVal = (int)((other.Mask >> (i * 5)) & 0x1F);
+
+            int value;
+
+            if (leftVal == 0)
+            {
+                value = rightVal;
+            }
+            else if (rightVal == 0)
+            {
+                value = leftVal;
+            }
+            else if (leftVal == rightVal)
+            {
+                value = leftVal;
+            }
+            else
+            {
+                result = default;
+                return false;
+            }
+
+            mask |= (uint)value << (i * 5);
+
+            if (value == 0)
+                continue;
+
+            int letterBit = 1 << value;
+
+            if ((letterMask & letterBit) != 0) // Duplicate letter: mark the mask as negative.
+            {
+                if (letterMask > 0)
+                    letterBit = -letterBit;
+            }
+
+            letterMask |= letterBit;
+        }
+
+        result = new WordMask(mask, letterMask);
+        return true;
     }
 
     public bool Equals(WordMask x, WordMask y)
