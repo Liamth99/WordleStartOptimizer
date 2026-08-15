@@ -28,7 +28,7 @@ internal class Program
         }
 
         try { await CheckVersionAsync(); }
-        catch (Exception ex) { }
+        catch (Exception _) { }
 
         AnsiConsole.MarkupLine($"Generating starting word sets with {Options.SetSize} words.");
         AnsiConsole.MarkupLine($"Using [red]{Options.ThreadCount}[/] threads.");
@@ -333,6 +333,11 @@ internal class Program
 
             if (Options.BlockedLetterMask is not null && (Options.BlockedLetterMask & usedMask) > 0)
                 return;
+
+            if (Options.RequiredWordMask is not null && !Options.RequiredWordMask.Value.AllCombinedMatchesPattern(chosen.Select(i => Data.ProcessedGuesses[i])))
+            {
+                return;
+            }
 
             results.Add(
                 new CandidateSet()

@@ -148,6 +148,32 @@ public class Options
 
     public int? BlockedLetterMask { get; private init; }
 
+    [Option("wordPattern", Default = null, HelpText = "A required pattern for words to be included in the generated starting word set (Use '*' to represent wildcards).")]
+    public string? RequiredWordPattern
+    {
+        get;
+
+        init
+        {
+            if (value is null)
+            {
+                field = null;
+                return;
+            }
+
+            if (value.Length is not 5)
+                throw new ArgumentException("Pattern must be 5 characters long.", nameof(RequiredWordPattern));
+
+            if (value.Any(x => !char.IsAsciiLetter(x) && x is not '*'))
+                throw new ArgumentException("Pattern must only consist of letters and wildcards.", nameof(RequiredWordPattern));
+
+            field            = value.ToLower();
+            RequiredWordMask = WordMask.FromMaskPattern(value.ToLower());
+        }
+    }
+
+    public WordMask? RequiredWordMask { get; private init; }
+
     [Option("top", Default = 10, HelpText = "How many results to show when exporting data.")]
     public int TopResults { get; init; }
 
@@ -170,5 +196,9 @@ public class Options
         new Example("Generate 4 starting words with higher focus on finding green letters, showing the top 20 results",
                     new UnParserSettings() { PreferShortName = true, },
                     new Options() { SetSize = 4, GreenLetterModifier = 1, EntropyModifier = .85, TopResults = 20, }),
+
+        new Example("Generate 2 starting words that includes the letters `s` and `h` at the end",
+                    new UnParserSettings() { PreferShortName = true, },
+                    new Options() { SetSize = 2, RequiredWordPattern = "***sh", }),
     ];
 }
