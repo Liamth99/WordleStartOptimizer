@@ -26,7 +26,7 @@ public readonly struct WordMask : IEqualityComparer<WordMask>, IEquatable<WordMa
 
     public bool ContainsDuplicateLetters => LetterMask < 0;
 
-    public bool HasCharacter(char c) => (LetterMask & (1 << (c - 'a' + 1))) is not 0;
+    public bool HasCharacter(char c) => (LetterMask & (1 << (c - 'a'))) is not 0;
 
     public char this[int index] => (char)('a' + ((Mask >> (index * 5)) & 0x1F) - 1);
 
@@ -140,55 +140,6 @@ public readonly struct WordMask : IEqualityComparer<WordMask>, IEquatable<WordMa
         }
 
         return this == new WordMask(new string(chars));
-    }
-
-    public bool TryMerge(WordMask other, out WordMask result)
-    {
-        uint mask       = 0;
-        int  letterMask = 0;
-        for (int i = 0; i < 5; i++)
-        {
-            var leftVal  = (int)((Mask >> (i * 5)) & 0x1F);
-            var rightVal = (int)((other.Mask >> (i * 5)) & 0x1F);
-
-            int value;
-
-            if (leftVal == 0)
-            {
-                value = rightVal;
-            }
-            else if (rightVal == 0)
-            {
-                value = leftVal;
-            }
-            else if (leftVal == rightVal)
-            {
-                value = leftVal;
-            }
-            else
-            {
-                result = default;
-                return false;
-            }
-
-            mask |= (uint)value << (i * 5);
-
-            if (value == 0)
-                continue;
-
-            int letterBit = 1 << value;
-
-            if ((letterMask & letterBit) != 0) // Duplicate letter: mark the mask as negative.
-            {
-                if (letterMask > 0)
-                    letterBit = -letterBit;
-            }
-
-            letterMask |= letterBit;
-        }
-
-        result = new WordMask(mask, letterMask);
-        return true;
     }
 
     public bool Equals(WordMask x, WordMask y)
