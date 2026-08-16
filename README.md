@@ -17,6 +17,7 @@ Rather than ranking individual words, Wordle Start Optimizer searches combinatio
 * Optional letter frequency visualization
 * Generate sets with required words
 * Generate sets with required letters
+* Generate sets that match specific letter patterns
 
 ## How It Works
 
@@ -185,5 +186,13 @@ Generate a word with no vowels
 ```bash
 WordleStartOptimizer 1 --blockedLetters aeiouy
 ```
+
+Generate a set that matches a pattern
+
+```bash
+WordleStartOptimizer 2 --wordPattern sh***
+```
+
+> will generate sets like `sorel, ahint`
 
 ###### AI disclaimer: I used AI to assist with documentation and licensing.

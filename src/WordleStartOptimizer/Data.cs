@@ -7,7 +7,7 @@ public static partial class Data
 {
     private static Lock _lock = new();
 
-    public static WordInfo[] ProcessedGuesses = [];
+    public static WordMask[] ProcessedGuesses = [];
 
     /// The counts of correct letters in their correct positions (green letters) for each possible guess.
     public static double[] GreenLetters = [];
@@ -50,7 +50,7 @@ public static partial class Data
     public static void Initialize(int threadCount)
     {
         ProcessedGuesses = ValidGuesses
-                           .Select(word => new WordInfo(word))
+                           .Select(word => new WordMask(word))
                            .ToArray();
 
         GreenLetters  = new double[ProcessedGuesses.Length];
@@ -77,7 +77,7 @@ public static partial class Data
                      {
                          var guess = ProcessedGuesses[i];
 
-                         foreach (char c in guess.Word)
+                         foreach (char c in guess.Chars)
                          {
                              lock (_lock)
                              {
@@ -90,21 +90,21 @@ public static partial class Data
                              byte code       = 0;
                              int  multiplier = 1;
 
-                             WordInfo answer    = ProcessedGuesses[j];
+                             WordMask answer    = ProcessedGuesses[j];
                              int[]    remaining = new int[26];
                              int[]    states    = new int[5];
 
                              for (int k = 0; k < 5; k++)
                              {
-                                 remaining[answer.Word[k] - 'a']++;
+                                 remaining[answer[k] - 'a']++;
                              }
 
                              // Calc greens
                              for (int charI = 0; charI < 5; charI++)
                              {
-                                 char c = guess.Word[charI];
+                                 char c = guess[charI];
 
-                                 if (c == answer.Word[charI])
+                                 if (c == answer[charI])
                                  {
                                      GreenLetters[i] += denominator;
                                      states[charI]   =  2;
@@ -118,7 +118,7 @@ public static partial class Data
                                  if(states[charI] is 2)
                                      continue;
 
-                                 char c = guess.Word[charI];
+                                 char c = guess[charI];
 
                                  if (remaining[c - 'a'] > 0)
                                  {

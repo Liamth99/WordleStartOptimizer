@@ -28,7 +28,7 @@ internal class Program
         }
 
         try { await CheckVersionAsync(); }
-        catch (Exception ex) { }
+        catch (Exception _) { }
 
         AnsiConsole.MarkupLine($"Generating starting word sets with {Options.SetSize} words.");
         AnsiConsole.MarkupLine($"Using [red]{Options.ThreadCount}[/] threads.");
@@ -72,7 +72,7 @@ internal class Program
                           {
                               Interlocked.Increment(ref completed);
 
-                              var mask = Data.ProcessedGuesses[i].Mask;
+                              var mask = Data.ProcessedGuesses[i].LetterMask;
 
                               if (mask < 0)
                               {
@@ -91,10 +91,10 @@ internal class Program
                                   {
                                       arr[setIndex] = wordIndex;
 
-                                      if((Data.ProcessedGuesses[wordIndex].Mask & mask) > 0)
+                                      if((Data.ProcessedGuesses[wordIndex].LetterMask & mask) > 0)
                                           return;
 
-                                      mask |= Data.ProcessedGuesses[wordIndex].Mask;
+                                      mask |= Data.ProcessedGuesses[wordIndex].LetterMask;
                                       setIndex++;
                                   }
                               }
@@ -334,6 +334,11 @@ internal class Program
             if (Options.BlockedLetterMask is not null && (Options.BlockedLetterMask & usedMask) > 0)
                 return;
 
+            if (Options.RequiredWordMask is not null && !Options.RequiredWordMask.Value.AllCombinedMatchesPattern(chosen.Select(i => Data.ProcessedGuesses[i])))
+            {
+                return;
+            }
+
             results.Add(
                 new CandidateSet()
                 {
@@ -347,7 +352,7 @@ internal class Program
 
         for (short i = start; i < Data.ProcessedGuesses.Length; i++)
         {
-            var mask = Data.ProcessedGuesses[i].Mask;
+            var mask = Data.ProcessedGuesses[i].LetterMask;
 
             if (mask < 0 || (usedMask & mask) is not 0)
                 continue;
