@@ -4,13 +4,13 @@ using System.Text.Json.Nodes;
 using CommandLine;
 using WordleStartOptimizer.Models;
 using Spectre.Console;
+using WordleStartOptimizer.Search;
 
 namespace WordleStartOptimizer;
 
 internal class Program
 {
     public static  Options Options { get; private set; } = null!;
-    private static Lock    _reportingLock = new();
 
     public static async Task Main(string[] args)
     {
@@ -44,125 +44,17 @@ internal class Program
             AnsiConsole.MarkupLine($"Excluding blocked letters: {string.Join(", ", Options.BlockedLetters.Select(x => $"[red]{x}[/]"))}");
         }
 
-        ConcurrentBag<CandidateSet> candidates = [];
-        ConcurrentBag<WordSet> scoredSets = [];
-
         Data.Initialize(Options.ThreadCount);
 
-        AnsiConsole
-           .Progress()
-           .Columns(new SpinnerColumn(), new TaskDescriptionColumn(), new ProgressBarColumn(), new ElapsedTimeColumn())
-           .Start(ctx =>
-                  {
-                      var candidateTask = ctx.AddTask("Creating candidates", maxValue: 1);
-                      candidateTask.StartTask();
+        var scoredSets = RunSearch(Options);
 
-                      int    completed    = 0;
-                      double lastProgress = 0;
-
-                      Parallel.For(
-                          0,
-                          Data.ProcessedGuesses.Length,
-                          new ParallelOptions()
-                          {
-                              MaxDegreeOfParallelism = Options.ThreadCount
-                          },
-                          i =>
-                          {
-                              Interlocked.Increment(ref completed);
-
-                              var mask = Data.ProcessedGuesses[i].LetterMask;
-
-                              if (mask < 0)
-                              {
-                                  return;
-                              }
-
-                              var arr = Enumerable.Repeat((short)0, Options.SetSize).ToArray();
-                              arr[0] = (short)i;
-
-                              int setIndex = 1;
-
-                              if (Options.RequiredWordsIndexes is not null)
-                              {
-
-                                  foreach (var wordIndex in Options.RequiredWordsIndexes)
-                                  {
-                                      arr[setIndex] = wordIndex;
-
-                                      if((Data.ProcessedGuesses[wordIndex].LetterMask & mask) > 0)
-                                          return;
-
-                                      mask |= Data.ProcessedGuesses[wordIndex].LetterMask;
-                                      setIndex++;
-                                  }
-                              }
-
-                              Search((short)(i + 1), mask, setIndex, arr, candidates);
-
-                              var progress = (double)completed / Data.ProcessedGuesses.Length;
-
-                              lock (_reportingLock)
-                              {
-                                  if (progress >= lastProgress + .01d)
-                                  {
-                                      lastProgress = progress;
-                                      candidateTask.Value(progress);
-                                  }
-                              }
-                          });
-
-                      candidateTask.Description($"Found [Aqua]{candidates.Count:N0}[/] candidates.");
-                      candidateTask.Value(1);
-                      candidateTask.StopTask();
-
-                      if (candidates.Count is 0)
-                      {
-                          return;
-                      }
-
-                      completed    = 0;
-                      lastProgress = 0;
-                      int candidatesCheckingCount = int.Min(candidates.Count, int.Max(100_000, (int)Math.Round(candidates.Count * Options.EffortPercentage, MidpointRounding.AwayFromZero)));
-                      var candidatesChecking      = Options.Effort is EffortLevel.Max ? candidates.ToArray() : candidates.OrderByDescending(candidate => candidate.PreScore).Take(candidatesCheckingCount).ToArray();
-                      var scoringTask             = ctx.AddTask($"Performing full scoring on [green]{candidatesCheckingCount:N0}[/] candidates", maxValue: 1);
-
-                      Parallel.ForEach(
-                          candidatesChecking,
-                          new ParallelOptions()
-                          {
-                              MaxDegreeOfParallelism = Options.ThreadCount,
-                          },
-                          candidate =>
-                          {
-                              scoredSets.Add(new WordSet(candidate.WordIndexes));
-
-                              Interlocked.Increment(ref completed);
-
-                              var progress = (double)completed / candidatesCheckingCount;
-
-                              lock (_reportingLock)
-                              {
-                                  if (progress >= lastProgress + .01d)
-                                  {
-                                      lastProgress = progress;
-                                      scoringTask.Value(progress);
-                                  }
-                              }
-                          }
-                      );
-
-                      scoringTask.Value(1);
-                      scoringTask.StopTask();
-                  });
-
-        if (scoredSets.IsEmpty)
+        if (scoredSets.Length is 0)
         {
             AnsiConsole.MarkupLine("[red]Found no valid sets with current configuration.[/]");
             return;
         }
 
-        if (scoredSets.Count is 1)
+        if (scoredSets.Length is 1)
         {
             var set = scoredSets.First();
 
@@ -314,51 +206,38 @@ internal class Program
         return $"[{(s < .25 ? "red" : s < .75 ? "yellow" : "green")}]{s:N3}[/]";
     }
 
-    private static void Search(short start, int usedMask, int depth, short[] chosen, ConcurrentBag<CandidateSet> results)
+    private static WordSet[] RunSearch(Options options)
     {
-        if (depth == Options.SetSize)
-        {
-            double preScore = 0;
-            var    words    = new short[Options.SetSize];
+        WordSet[] scoredSets = null!;
 
-            for (int i = 0; i < chosen.Length; i++)
-            {
-                preScore += Data.WordEntropies[chosen[i]];
-                words[i] =  chosen[i];
-            }
+        AnsiConsole
+           .Progress()
+           .Columns(new SpinnerColumn(), new TaskDescriptionColumn(), new ProgressBarColumn(), new ElapsedTimeColumn())
+           .Start(ctx =>
+                  {
+                      var candidateTask = ctx.AddTask("Creating candidates", maxValue: 1);
+                      candidateTask.StartTask();
 
-            if (Options.RequiredLetterMask is not null && (Options.RequiredLetterMask & usedMask) != Options.RequiredLetterMask)
-                return;
+                      var candidates = CandidateSearcher.GenerateCandidates(options, p => candidateTask.Value(p));
 
-            if (Options.BlockedLetterMask is not null && (Options.BlockedLetterMask & usedMask) > 0)
-                return;
+                      candidateTask.Description($"Found [Aqua]{candidates.Length:N0}[/] candidates.");
+                      candidateTask.Value(1);
+                      candidateTask.StopTask();
 
-            if (Options.RequiredWordMask is not null && !Options.RequiredWordMask.Value.AllCombinedMatchesPattern(chosen.Select(i => Data.ProcessedGuesses[i])))
-            {
-                return;
-            }
+                      if (candidates.Length is 0)
+                      {
+                          scoredSets = [];
+                          return;
+                      }
+                      var candidatesChecking = CandidateScorer.SelectCandidatesToScore(candidates, options);
+                      var scoringTask        = ctx.AddTask($"Performing full scoring on [green]{candidatesChecking.Length:N0}[/] candidates", maxValue: 1);
 
-            results.Add(
-                new CandidateSet()
-                {
-                    WordIndexes = words,
-                    PreScore    = preScore,
-                }
-            );
+                      scoredSets = CandidateScorer.ScoreCandidates(candidatesChecking, options, p => scoringTask.Value(p));
 
-            return;
-        }
+                      scoringTask.Value(1);
+                      scoringTask.StopTask();
+                  });
 
-        for (short i = start; i < Data.ProcessedGuesses.Length; i++)
-        {
-            var mask = Data.ProcessedGuesses[i].LetterMask;
-
-            if (mask < 0 || (usedMask & mask) is not 0)
-                continue;
-
-            chosen[depth] = i;
-
-            Search((short)(i + 1), usedMask | mask, depth + 1, chosen, results);
-        }
+        return scoredSets;
     }
 }
