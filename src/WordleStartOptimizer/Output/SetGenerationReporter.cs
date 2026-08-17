@@ -19,7 +19,7 @@ public static class SetGenerationReporter
             AnsiConsole.Write(SetMarkupBuilder.BuildRawDataTable(set));
     }
 
-    public static void ReportTopResults(WordSet[] bestResults, Options options)
+    public static void ReportTopResults(WordSet[] bestResults, WordSetScoringContext context, Options options)
     {
         AnsiConsole.Write(new Rule($"Top {bestResults.Length} results").LeftJustified());
 
@@ -28,25 +28,31 @@ public static class SetGenerationReporter
             var set = bestResults[i];
 
             AnsiConsole.MarkupLine($"{i + 1}: {SetMarkupBuilder.FormatWordSetMarkup(set)}");
-            AnsiConsole.MarkupLine($"Total Score: [green]{set.Score:N3}[/]");
+            AnsiConsole.MarkupLine($"Total Score: [green]{context.Score(set, options):N3}[/]");
 
             if (options.VerboseScoring)
-                AnsiConsole.Write(SetMarkupBuilder.BuildScoreTable(set, options));
+                AnsiConsole.Write(SetMarkupBuilder.BuildScoreTable(set, context, options));
 
             AnsiConsole.WriteLine();
         }
     }
 
-    public static void ReportGlobalStats()
+    public static void ReportGlobalStats(WordSetScoringContext context)
     {
         AnsiConsole.Write(new Rule("Global Stat Breakdown").LeftJustified());
         AnsiConsole.MarkupLine($"Entropy Theoretical max [green]{Data.MaxPossibleEntropy:N5}[/]");
-        AnsiConsole.MarkupLine($"Entropy: [yellow]{WordSet.MinEntropy:N5}[/] -> [green]{WordSet.MaxEntropy:N5}[/]");
-        AnsiConsole.MarkupLine($"Expected Remaining: [yellow]{WordSet.MaxExpectedRemaining:N1}[/] -> [green]{WordSet.MinExpectedRemaining:N1}[/]");
-        AnsiConsole.MarkupLine($"Worst Case Remaining: [yellow]{WordSet.MaxWorstCaseRemaining:N0}[/] -> [green]{WordSet.MinWorstCaseRemaining:N0}[/]");
-        AnsiConsole.MarkupLine($"Avg Greens: [yellow]{WordSet.MinGreen:N2}[/] -> [green]{WordSet.MaxGreen:N2}[/]");
-        AnsiConsole.MarkupLine($"Avg Yellows: [yellow]{WordSet.MinYellow:N2}[/] -> [green]{WordSet.MaxYellow:N2}[/]");
-        AnsiConsole.MarkupLine($"Letter Distribution Order: [yellow]{WordSet.MinLetterDistributionOrder:N1}[/] -> [green]{WordSet.MaxLetterDistributionOrder:N1}[/]");
+        PrintRange("Entropy", context.Entropy, "N5");
+        PrintRange("Expected Remaining", context.ExpectedRemaining, "N1", invert: true);
+        PrintRange("Worst Case Remaining", context.WorstCaseRemaining, "N0", invert: true);
+        PrintRange("Avg Greens", context.Green, "N2");
+        PrintRange("Avg Yellows", context.Yellow, "N2");
+        PrintRange("Letter Distribution Order", context.LetterDistributionOrder, "N1");
         AnsiConsole.WriteLine();
+    }
+
+    private static void PrintRange(string label, WordSetScoringContext.MetricRange range, string format, bool invert = false)
+    {
+        var (low, high) = invert ? (range.Max, range.Min) : (range.Min, range.Max);
+        AnsiConsole.MarkupLine($"{label}: [yellow]{low.ToString(format)}[/] -> [green]{high.ToString(format)}[/]");
     }
 }

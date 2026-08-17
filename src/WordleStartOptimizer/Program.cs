@@ -8,9 +8,9 @@ namespace WordleStartOptimizer;
 
 internal class Program
 {
-    public static  Options Options { get; private set; } = null!;
+    public static Options Options { get; private set; } = null!;
 
-    public static async Task Main(string[] args)
+    public static void Main(string[] args)
     {
         var parserResult = Parser.Default.ParseArguments<Options>(args);
 
@@ -59,17 +59,19 @@ internal class Program
             return;
         }
 
+        var scoringContext = new WordSetScoringContext(scoredSets);
+
         if (Options.VerboseScoring)
         {
-            SetGenerationReporter.ReportGlobalStats();
+            SetGenerationReporter.ReportGlobalStats(scoringContext);
         }
 
         WordSet[] bestResults = scoredSets
-                         .OrderByDescending(set => set.Score)
+                         .OrderByDescending(set => scoringContext.Score(set, Options))
                          .Take(Options.TopResults)
                          .ToArray();
 
-        SetGenerationReporter.ReportTopResults(bestResults, Options);
+        SetGenerationReporter.ReportTopResults(bestResults, scoringContext, Options);
     }
 
 

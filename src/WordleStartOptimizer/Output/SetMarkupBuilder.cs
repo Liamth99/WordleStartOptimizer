@@ -25,7 +25,7 @@ public static class SetMarkupBuilder
         return table;
     }
 
-    public static Table BuildScoreTable(WordSet set, Options options)
+    public static Table BuildScoreTable(WordSet set, WordSetScoringContext context, Options options)
     {
         var table = new Table();
         table.AddColumns("Metric", "Raw", "Normalized", "Weight", "Contribution");
@@ -33,51 +33,51 @@ public static class SetMarkupBuilder
         table.AddRow(
             "Entropy",
             $"{set.Entropy:N5}",
-            ColorNormalizedScore(set.NormalizedEntropy),
+            ColorNormalizedScore(context.NormalizedEntropy(set)),
             $"{options.EntropyModifier:N2}",
-            $"{set.NormalizedEntropy * options.EntropyModifier:N3}");
+            $"{context.NormalizedEntropy(set) * options.EntropyModifier:N3}");
 
         table.AddRow(
             "Expected Remaining",
             $"{set.ExpectedRemaining:N1}",
-            ColorNormalizedScore(set.NormalizedExpectedRemaining),
+            ColorNormalizedScore(context.NormalizedExpectedRemaining(set)),
             $"{options.ExpectedRemainingModifier:N2}",
-            $"{set.NormalizedExpectedRemaining * options.ExpectedRemainingModifier:N3}");
+            $"{context.NormalizedExpectedRemaining(set) * options.ExpectedRemainingModifier:N3}");
 
         table.AddRow(
             "Worst Case Remaining",
             $"{set.WorstCaseRemaining:N0}",
-            ColorNormalizedScore(set.NormalizedWorstCaseRemaining),
+            ColorNormalizedScore(context.NormalizedWorstCaseRemaining(set)),
             $"{options.WorstCaseRemainingModifier:N2}",
-            $"{set.NormalizedWorstCaseRemaining * options.WorstCaseRemainingModifier:N3}");
+            $"{context.NormalizedWorstCaseRemaining(set) * options.WorstCaseRemainingModifier:N3}");
 
         table.AddRow(
             "Avg Green Letters",
             $"{set.AvgGreen:N2}",
-            ColorNormalizedScore(set.NormalizedGreen),
+            ColorNormalizedScore(context.NormalizedGreen(set)),
             $"{options.GreenLetterModifier:N2}",
-            $"{set.NormalizedGreen * options.GreenLetterModifier:N3}");
+            $"{context.NormalizedGreen(set) * options.GreenLetterModifier:N3}");
 
         table.AddRow(
             "Avg Yellow Letters",
             $"{set.AvgYellow:N2}",
-            ColorNormalizedScore(set.NormalizedYellow),
+            ColorNormalizedScore(context.NormalizedYellow(set)),
             $"{options.YellowLetterModifier:N2}",
-            $"{set.NormalizedYellow * options.YellowLetterModifier:N3}");
+            $"{context.NormalizedYellow(set) * options.YellowLetterModifier:N3}");
 
         table.AddRow(
             "Vowel Score",
             $"{set.VowelCount:N0}",
-            ColorNormalizedScore(set.NormalizedVowelCount),
+            ColorNormalizedScore(context.NormalizedVowelCount(set)),
             $"{options.VowelCountModifier:N2}",
-            $"{set.NormalizedVowelCount * options.VowelCountModifier:N3}");
+            $"{context.NormalizedVowelCount(set)* options.VowelCountModifier:N3}");
 
         table.AddRow(
             "Letter Distribution Score",
             $"{set.LetterDistributionOrder:N3}",
-            ColorNormalizedScore(set.NormalizedLetterDistributionOrder),
+            ColorNormalizedScore(context.NormalizedLetterDistributionOrder(set)),
             $"{options.LetterDistributionOrderModifier:N2}",
-            $"{set.NormalizedLetterDistributionOrder * options.LetterDistributionOrderModifier:N3}");
+            $"{context.NormalizedLetterDistributionOrder(set) * options.LetterDistributionOrderModifier:N3}");
 
         table.AddRow(
             "Valid Answers",
