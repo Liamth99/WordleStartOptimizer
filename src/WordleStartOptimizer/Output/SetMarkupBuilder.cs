@@ -1,5 +1,6 @@
 using Spectre.Console;
 using WordleStartOptimizer.Models;
+using WordleStartOptimizer.Models.Options;
 
 namespace WordleStartOptimizer.Output;
 
@@ -25,7 +26,7 @@ public static class SetMarkupBuilder
         return table;
     }
 
-    public static Table BuildScoreTable(WordSet set, WordSetScoringContext context, Options options)
+    public static Table BuildScoreTable(WordSet set, WordSetScoringContext context, SetGenerationOptions options)
     {
         var table = new Table();
         table.AddColumns("Metric", "Raw", "Normalized", "Weight", "Contribution");

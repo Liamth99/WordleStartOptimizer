@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using WordleStartOptimizer.Models;
 using Spectre.Console;
+using WordleStartOptimizer.Models.Options;
 using WordleStartOptimizer.Output;
 using WordleStartOptimizer.Search;
 
@@ -8,44 +9,42 @@ namespace WordleStartOptimizer;
 
 internal class Program
 {
-    public static Options Options { get; private set; } = null!;
-
     public static void Main(string[] args)
     {
-        var parserResult = Parser.Default.ParseArguments<Options>(args);
+        var parserResult = Parser.Default.ParseArguments<SetGenerationOptions>(args);
 
         if(parserResult.Errors.Any())
             return;
 
-        Options = parserResult.Value;
+        var options = parserResult.Value;
 
-        if (Options.RequiredWordsIndexes?.Length >= Options.SetSize)
+        if (options.RequiredWordsIndexes?.Length >= options.SetSize)
         {
-            AnsiConsole.WriteException(new ArgumentException($"Required words length must be less than Set Size ({Options.SetSize}).", nameof(Options.RequiredWords)));
+            AnsiConsole.WriteException(new ArgumentException($"Required words length must be less than Set Size ({options.SetSize}).", nameof(options.RequiredWords)));
             return;
         }
 
         var versionCheckTask = VersionChecker.CheckVersionAsync();
 
-        Data.Initialize(Options.ThreadCount);
+        Data.Initialize(options.ThreadCount);
         Task.WaitAll(versionCheckTask);
 
-        AnsiConsole.MarkupLine($"Generating starting word sets with {Options.SetSize} words.");
-        AnsiConsole.MarkupLine($"Using [red]{Options.ThreadCount}[/] threads.");
-        if (Options.RequiredWordsIndexes is not null)
+        AnsiConsole.MarkupLine($"Generating starting word sets with {options.SetSize} words.");
+        AnsiConsole.MarkupLine($"Using [red]{options.ThreadCount}[/] threads.");
+        if (options.RequiredWordsIndexes is not null)
         {
-            AnsiConsole.MarkupLine($"Using required words: {string.Join(", ", Options.RequiredWordsIndexes.Select(x => $"[cyan]{Data.ValidGuesses[x]}[/]"))}");
+            AnsiConsole.MarkupLine($"Using required words: {string.Join(", ", options.RequiredWordsIndexes.Select(x => $"[cyan]{Data.ValidGuesses[x]}[/]"))}");
         }
-        if (Options.RequiredLetters is not null)
+        if (options.RequiredLetters is not null)
         {
-            AnsiConsole.MarkupLine($"Using required letters: {string.Join(", ", Options.RequiredLetters.Select(x => $"[cyan]{x}[/]"))}");
+            AnsiConsole.MarkupLine($"Using required letters: {string.Join(", ", options.RequiredLetters.Select(x => $"[cyan]{x}[/]"))}");
         }
-        if (Options.BlockedLetters is not null)
+        if (options.BlockedLetters is not null)
         {
-            AnsiConsole.MarkupLine($"Excluding blocked letters: {string.Join(", ", Options.BlockedLetters.Select(x => $"[red]{x}[/]"))}");
+            AnsiConsole.MarkupLine($"Excluding blocked letters: {string.Join(", ", options.BlockedLetters.Select(x => $"[red]{x}[/]"))}");
         }
 
-        var scoredSets = RunSearch(Options);
+        var scoredSets = RunSearch(options);
 
         if (scoredSets.Length is 0)
         {
@@ -55,27 +54,27 @@ internal class Program
 
         if (scoredSets.Length is 1)
         {
-            SetGenerationReporter.ReportSingleResult(scoredSets[0], Options);
+            SetGenerationReporter.ReportSingleResult(scoredSets[0], options);
             return;
         }
 
         var scoringContext = new WordSetScoringContext(scoredSets);
 
-        if (Options.VerboseScoring)
+        if (options.VerboseScoring)
         {
             SetGenerationReporter.ReportGlobalStats(scoringContext);
         }
 
         WordSet[] bestResults = scoredSets
-                         .OrderByDescending(set => scoringContext.Score(set, Options))
-                         .Take(Options.TopResults)
+                         .OrderByDescending(set => scoringContext.Score(set, options))
+                         .Take(options.TopResults)
                          .ToArray();
 
-        SetGenerationReporter.ReportTopResults(bestResults, scoringContext, Options);
+        SetGenerationReporter.ReportTopResults(bestResults, scoringContext, options);
     }
 
 
-    private static WordSet[] RunSearch(Options options)
+    private static WordSet[] RunSearch(SetGenerationOptions options)
     {
         WordSet[] scoredSets = null!;
 

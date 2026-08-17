@@ -1,5 +1,6 @@
 using Spectre.Console;
 using WordleStartOptimizer.Models;
+using WordleStartOptimizer.Models.Options;
 
 namespace WordleStartOptimizer.Output;
 
@@ -10,7 +11,7 @@ public static class SetGenerationReporter
         AnsiConsole.MarkupLine("[red]Found no valid sets with current configuration.[/]");
     }
 
-    public static void ReportSingleResult(WordSet set, Options options)
+    public static void ReportSingleResult(WordSet set, SetGenerationOptions options)
     {
         AnsiConsole.MarkupLine("[Yellow]Only found one valid set with configuration.[/]");
         AnsiConsole.MarkupLine(SetMarkupBuilder.FormatWordSetMarkup(set));
@@ -19,7 +20,7 @@ public static class SetGenerationReporter
             AnsiConsole.Write(SetMarkupBuilder.BuildRawDataTable(set));
     }
 
-    public static void ReportTopResults(WordSet[] bestResults, WordSetScoringContext context, Options options)
+    public static void ReportTopResults(WordSet[] bestResults, WordSetScoringContext context, SetGenerationOptions options)
     {
         AnsiConsole.Write(new Rule($"Top {bestResults.Length} results").LeftJustified());
 

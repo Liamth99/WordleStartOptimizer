@@ -1,3 +1,5 @@
+using WordleStartOptimizer.Models.Options;
+
 namespace WordleStartOptimizer.Models;
 
 public sealed class WordSetScoringContext
@@ -40,7 +42,7 @@ public sealed class WordSetScoringContext
     public double NormalizedLetterDistributionOrder(WordSet set)
         => LetterDistributionOrder.Normalize(set.LetterDistributionOrder);
 
-    public double Score(WordSet set, Options options) =>
+    public double Score(WordSet set, SetGenerationOptions options) =>
         options.EntropyModifier                 * NormalizedEntropy(set) +
         options.ExpectedRemainingModifier       * NormalizedExpectedRemaining(set) +
         options.WorstCaseRemainingModifier      * NormalizedWorstCaseRemaining(set) +

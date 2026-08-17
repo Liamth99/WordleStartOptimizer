@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
 using WordleStartOptimizer.Models;
+using WordleStartOptimizer.Models.Options;
 
 namespace WordleStartOptimizer.Search;
 
 public static class CandidateSearcher
 {
-    public static CandidateSet[] GenerateCandidates(Options options, Action<double>? onProgress = null)
+    public static CandidateSet[] GenerateCandidates(SetGenerationOptions options, Action<double>? onProgress = null)
     {
         ConcurrentBag<CandidateSet> candidates = [];
 
@@ -42,7 +43,7 @@ public static class CandidateSearcher
         return candidates.ToArray();
     }
 
-    private static void StartSearchFrom(int firstWordIndex, ConcurrentBag<CandidateSet> candidates, Options options)
+    private static void StartSearchFrom(int firstWordIndex, ConcurrentBag<CandidateSet> candidates, SetGenerationOptions options)
     {
         var mask = Data.ProcessedGuesses[firstWordIndex].LetterMask;
 
@@ -72,7 +73,7 @@ public static class CandidateSearcher
         Search((short)(firstWordIndex + 1), mask, setIndex, chosen, candidates, options);
     }
 
-    private static void Search(short start, int usedMask, int depth, short[] chosen, ConcurrentBag<CandidateSet> candidates, Options options)
+    private static void Search(short start, int usedMask, int depth, short[] chosen, ConcurrentBag<CandidateSet> candidates, SetGenerationOptions options)
     {
         if (depth == options.SetSize)
         {
@@ -112,7 +113,7 @@ public static class CandidateSearcher
         }
     }
 
-    private static bool MatchesConstraints(int usedMask, short[] chosen, Options options)
+    private static bool MatchesConstraints(int usedMask, short[] chosen, SetGenerationOptions options)
     {
         if (options.RequiredLetterMask is not null && (options.RequiredLetterMask & usedMask) != options.RequiredLetterMask)
             return false;

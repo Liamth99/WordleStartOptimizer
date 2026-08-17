@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
 using WordleStartOptimizer.Models;
+using WordleStartOptimizer.Models.Options;
 
 namespace WordleStartOptimizer.Search;
 
 public static class CandidateScorer
 {
-    public static CandidateSet[] SelectCandidatesToScore(CandidateSet[] candidates, Options options)
+    public static CandidateSet[] SelectCandidatesToScore(CandidateSet[] candidates, SetGenerationOptions options)
     {
         if (options.Effort is EffortLevel.Max)
             return candidates;
@@ -23,7 +24,7 @@ public static class CandidateScorer
               .ToArray();
     }
 
-    public static WordSet[] ScoreCandidates(CandidateSet[] candidates, Options options, Action<double>? onProgress = null)
+    public static WordSet[] ScoreCandidates(CandidateSet[] candidates, SetGenerationOptions options, Action<double>? onProgress = null)
     {
         ConcurrentBag<WordSet> scoredSets = [];
 
