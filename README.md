@@ -132,7 +132,7 @@ The optimizer first performs a quick pre-score, then only fully evaluates the st
 Run with:
 
 ```bash
-WordleStartOptimizer <setSize> [options]
+WordleStartOptimizer genSet <setSize> [options]
 ```
 
 Where `<setSize>` is between **2** and **5**.
@@ -142,7 +142,7 @@ Where `<setSize>` is between **2** and **5**.
 Generate a 2-word opening set:
 
 ```bash
-WordleStartOptimizer 2
+WordleStartOptimizer genSet 2
 ```
 
 <img src="Images/1.png">
@@ -150,13 +150,13 @@ WordleStartOptimizer 2
 Perform the maximum search:
 
 ```bash
-WordleStartOptimizer 2 --effort Max
+WordleStartOptimizer genSet 2 --effort Max
 ```
 
 Show detailed scoring for top 3 results:
 
 ```bash
-WordleStartOptimizer 2 --verboseScoring --top 3
+WordleStartOptimizer genSet 2 --verboseScoring --top 3
 ```
 
 <img src="Images/2.png">
@@ -164,32 +164,32 @@ WordleStartOptimizer 2 --verboseScoring --top 3
 Generate an opening set that promotes anagrams:
 
 ```bash
-WordleStartOptimizer 4 -y 1.0 -g -0.3 -e 0.5
+WordleStartOptimizer genSet 4 -y 1.0 -g -0.3 -e 0.5
 ```
 
 
 Generate a 3 word set with the words Adieu and Torch
 
 ```bash
-WordleStartOptimizer 3 --requiredWords "adieu torch"
+WordleStartOptimizer genSet 3 --requiredWords "adieu torch"
 ```
 
 Generate a 3 word set with some really terrible letters
 
 ```bash
-WordleStartOptimizer 3 --requiredLetters zxqj
+WordleStartOptimizer genSet 3 --requiredLetters zxqj
 ```
 
 Generate a word with no vowels
 
 ```bash
-WordleStartOptimizer 1 --blockedLetters aeiouy
+WordleStartOptimizer genSet 1 --blockedLetters aeiouy
 ```
 
 Generate a set that matches a pattern
 
 ```bash
-WordleStartOptimizer 2 --wordPattern sh***
+WordleStartOptimizer genSet 2 --wordPattern sh***
 ```
 
 > will generate sets like `sorel, ahint`
