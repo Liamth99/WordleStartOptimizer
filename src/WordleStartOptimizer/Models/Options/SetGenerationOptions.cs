@@ -5,7 +5,7 @@ using CommandLine.Text;
 namespace WordleStartOptimizer.Models.Options;
 
 [SuppressMessage("Design", "LOCAT001:Missing Debug Display, should include data from members")]
-[Verb("generateSet",  aliases: ["genSet"], HelpText = "Generate optimized starting word sets.")]
+[Verb("generateSet", isDefault: false, aliases: ["genSet"], HelpText = "Generate optimized starting word sets.")]
 public class SetGenerationOptions
 {
     [Value(0, MetaName = "Set Size", HelpText = "The number of starting words to generate.", Required = true)]

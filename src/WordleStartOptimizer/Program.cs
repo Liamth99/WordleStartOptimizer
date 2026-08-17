@@ -9,25 +9,25 @@ namespace WordleStartOptimizer;
 
 internal class Program
 {
-    public static void Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
-        var parserResult = Parser.Default.ParseArguments<SetGenerationOptions>(args);
+        return await Parser.Default
+                           .ParseArguments<SetGenerationOptions>(args)
+                           .MapResult(
+                                RunGenSetAsync,
+                                _ => Task.FromResult(1)
+                                );
+    }
 
-        if(parserResult.Errors.Any())
-            return;
-
-        var options = parserResult.Value;
-
+    private static async Task<int> RunGenSetAsync(SetGenerationOptions options)
+    {
+        await VersionChecker.CheckVersionAsync();
+        Data.Initialize(options.ThreadCount);
         if (options.RequiredWordsIndexes?.Length >= options.SetSize)
         {
             AnsiConsole.WriteException(new ArgumentException($"Required words length must be less than Set Size ({options.SetSize}).", nameof(options.RequiredWords)));
-            return;
+            return 1;
         }
-
-        var versionCheckTask = VersionChecker.CheckVersionAsync();
-
-        Data.Initialize(options.ThreadCount);
-        Task.WaitAll(versionCheckTask);
 
         AnsiConsole.MarkupLine($"Generating starting word sets with {options.SetSize} words.");
         AnsiConsole.MarkupLine($"Using [red]{options.ThreadCount}[/] threads.");
@@ -49,13 +49,13 @@ internal class Program
         if (scoredSets.Length is 0)
         {
             SetGenerationReporter.ReportNoResults();
-            return;
+            return 0;
         }
 
         if (scoredSets.Length is 1)
         {
             SetGenerationReporter.ReportSingleResult(scoredSets[0], options);
-            return;
+            return 0;
         }
 
         var scoringContext = new WordSetScoringContext(scoredSets);
@@ -71,6 +71,8 @@ internal class Program
                          .ToArray();
 
         SetGenerationReporter.ReportTopResults(bestResults, scoringContext, options);
+
+        return 0;
     }
 
 
