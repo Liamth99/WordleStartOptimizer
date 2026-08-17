@@ -14,7 +14,6 @@ Rather than ranking individual words, Wordle Start Optimizer searches combinatio
 * Configurable scoring weights
 * Adjustable search effort to trade accuracy for speed
 * Detailed scoring breakdowns
-* Optional letter frequency visualization
 * Generate sets with required words
 * Generate sets with required letters
 * Generate sets that match specific letter patterns

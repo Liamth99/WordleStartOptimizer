@@ -180,9 +180,6 @@ public class Options
     [Option("verboseScoring", Default = false, HelpText = "Show all scoring information.")]
     public bool VerboseScoring { get; init; }
 
-    [Option("showLetterGraph", Default = false, HelpText = "Show a graph showing the letter distribution of the sets.")]
-    public bool ShowLetterDistributionGraph { get; init; }
-
     [Option("threads", HelpText = "How many system threads to use (0 will use processor count).")]
     public int ThreadCount { get; init => field = value <= 0 ? Environment.ProcessorCount : value; } = Environment.ProcessorCount;
 
