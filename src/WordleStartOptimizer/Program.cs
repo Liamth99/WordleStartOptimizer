@@ -27,8 +27,7 @@ internal class Program
             return;
         }
 
-        try { await CheckVersionAsync(); }
-        catch (Exception _) { }
+        await VersionChecker.CheckVersionAsync();
 
         AnsiConsole.MarkupLine($"Generating starting word sets with {Options.SetSize} words.");
         AnsiConsole.MarkupLine($"Using [red]{Options.ThreadCount}[/] threads.");
@@ -360,24 +359,6 @@ internal class Program
             chosen[depth] = i;
 
             Search((short)(i + 1), usedMask | mask, depth + 1, chosen, results);
-        }
-    }
-
-    private static async Task CheckVersionAsync()
-    {
-        var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("WordleStartOptimizer-VersionCheck");
-
-        var s    = await httpClient.GetStringAsync("https://api.github.com/repos/Liamth99/WordleStartOptimizer/releases/latest");
-        var json = JsonNode.Parse(s);
-
-        var version = json!["name"];
-
-        var currentVersion = $"v{Assembly.GetAssembly(typeof(Program))!.GetName().Version!.ToString(3)}";
-
-        if (currentVersion != version!.ToString())
-        {
-            AnsiConsole.MarkupLine($"New version available to download at {json["html_url"]}");
         }
     }
 }
