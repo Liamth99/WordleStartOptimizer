@@ -18,7 +18,7 @@ public static class VersionChecker
 
             var currentVersion = $"v{Assembly.GetAssembly(typeof(VersionChecker))!.GetName().Version!.ToString(3)}";
 
-            if (string.IsNullOrEmpty(latestVersion) && currentVersion != latestVersion)
+            if (!string.IsNullOrEmpty(latestVersion) && currentVersion != latestVersion)
             {
                 AnsiConsole.MarkupLine($"New version available to download at {json!["html_url"]}");
             }
