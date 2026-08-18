@@ -2,10 +2,11 @@ using System.Diagnostics.CodeAnalysis;
 using CommandLine;
 using CommandLine.Text;
 
-namespace WordleStartOptimizer.Models;
+namespace WordleStartOptimizer.Models.Options;
 
 [SuppressMessage("Design", "LOCAT001:Missing Debug Display, should include data from members")]
-public class Options
+[Verb("generateSet", isDefault: false, aliases: ["genSet"], HelpText = "Generate optimized starting word sets.")]
+public class SetGenerationOptions
 {
     [Value(0, MetaName = "Set Size", HelpText = "The number of starting words to generate.", Required = true)]
     public int SetSize
@@ -180,9 +181,6 @@ public class Options
     [Option("verboseScoring", Default = false, HelpText = "Show all scoring information.")]
     public bool VerboseScoring { get; init; }
 
-    [Option("showLetterGraph", Default = false, HelpText = "Show a graph showing the letter distribution of the sets.")]
-    public bool ShowLetterDistributionGraph { get; init; }
-
     [Option("threads", HelpText = "How many system threads to use (0 will use processor count).")]
     public int ThreadCount { get; init => field = value <= 0 ? Environment.ProcessorCount : value; } = Environment.ProcessorCount;
 
@@ -191,14 +189,14 @@ public class Options
     [
         new Example("Generate 2 starting words with default scoring modifiers",
                     new UnParserSettings() { PreferShortName = true, },
-                    new Options() { SetSize = 2, }),
+                    new SetGenerationOptions() { SetSize = 2, }),
 
         new Example("Generate 4 starting words with higher focus on finding green letters, showing the top 20 results",
                     new UnParserSettings() { PreferShortName = true, },
-                    new Options() { SetSize = 4, GreenLetterModifier = 1, EntropyModifier = .85, TopResults = 20, }),
+                    new SetGenerationOptions() { SetSize = 4, GreenLetterModifier = 1, EntropyModifier = .85, TopResults = 20, }),
 
         new Example("Generate 2 starting words that includes the letters `s` and `h` at the end",
                     new UnParserSettings() { PreferShortName = true, },
-                    new Options() { SetSize = 2, RequiredWordPattern = "***sh", }),
+                    new SetGenerationOptions() { SetSize = 2, RequiredWordPattern = "***sh", }),
     ];
 }
