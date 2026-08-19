@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace WordleStartOptimizer.Models;
 
-[DebuggerDisplay("{Score} - {DisplayString}")]
+[DebuggerDisplay("{DisplayString}")]
 public sealed class WordSet
 {
     private string DisplayString => string.Join(", ", Words);

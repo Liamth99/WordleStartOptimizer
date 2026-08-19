@@ -11,11 +11,13 @@ internal class Program
 {
     public static async Task<int> Main(string[] args)
     {
+        Data.Initialize(Environment.ProcessorCount);
         return await Parser.Default
-                           .ParseArguments<SetGenerationOptions>(args)
+                           .ParseArguments<SetGenerationOptions, EvaluationOptions>(args)
                            .MapResult(
-                                RunGenSetAsync,
-                                _ => Task.FromResult(1)
+                                (SetGenerationOptions o) => RunGenSetAsync(o),
+                                (EvaluationOptions    o) => RunEvaluateSetAsync(o),
+                                 _ => Task.FromResult(1)
                                 );
     }
 
@@ -75,7 +77,6 @@ internal class Program
         return 0;
     }
 
-
     private static WordSet[] RunSearch(SetGenerationOptions options)
     {
         WordSet[] scoredSets = null!;
@@ -109,5 +110,13 @@ internal class Program
                   });
 
         return scoredSets;
+    }
+
+    private static async Task<int> RunEvaluateSetAsync(EvaluationOptions options)
+    {
+        await VersionChecker.CheckVersionAsync();
+
+        AnsiConsole.Write(SetMarkupBuilder.BuildRawDataTable(options.Set));
+        return 1;
     }
 }
