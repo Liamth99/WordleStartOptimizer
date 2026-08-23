@@ -126,8 +126,6 @@ internal class Program
             if(!Data.WordIsValidAnswer[i])
                 continue;
 
-            var ans = Data.ValidGuesses[i];
-
             int greens = 0, yellows = 0;
 
             foreach (short guessIndex in options.Set.WordIndexes)
@@ -185,6 +183,6 @@ internal class Program
 
         AnsiConsole.Write(grid);
 
-        return 1;
+        return 0;
     }
 }
