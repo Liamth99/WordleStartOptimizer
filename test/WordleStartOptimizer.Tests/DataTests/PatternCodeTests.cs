@@ -14,6 +14,10 @@ public class PatternCodeTests
     [InlineData("raise", "arise", Color.Yellow, Color.Yellow, Color.Green,  Color.Green, Color.Green)]
     [InlineData("apple", "ample", Color.Green,  Color.Grey,   Color.Green,  Color.Green, Color.Green)]
     [InlineData("eerie", "erase", Color.Green,  Color.Grey,   Color.Yellow, Color.Grey,  Color.Green)]
+    // Sanity testing a few cases
+    [InlineData("adieu", "stoic", Color.Grey,   Color.Grey,   Color.Yellow, Color.Grey,   Color.Grey )]
+    [InlineData("torch", "stoic", Color.Yellow, Color.Yellow, Color.Grey,   Color.Yellow, Color.Grey )]
+    [InlineData("gymps", "stoic", Color.Grey,   Color.Grey,   Color.Grey,   Color.Grey,   Color.Yellow )]
     public void PatternMatrixCodesCorrect(string guess, string answer, params Color[] colors)
     {
         var code = Data.PatternMatrix[Data.ValidGuesses.IndexOf(guess), Data.ValidGuesses.IndexOf(answer)];

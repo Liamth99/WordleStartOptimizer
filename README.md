@@ -17,6 +17,7 @@ Rather than ranking individual words, Wordle Start Optimizer searches combinatio
 * Generate sets with required words
 * Generate sets with required letters
 * Generate sets that match specific letter patterns
+* Evaluate sets and get usefull metrics on how it expected to perform
 
 ## How It Works
 
@@ -193,5 +194,19 @@ WordleStartOptimizer genSet 2 --wordPattern sh***
 ```
 
 > will generate sets like `sorel, ahint`
+
+### Evaluating a Set
+
+```bash
+WordleStartOptimizer eval [<word> ...]
+```
+
+Takes a specific set of words and reports its metrics.
+
+Evaluate a 2-word set:
+
+```bash
+WordleStartOptimizer eval crane slate
+```
 
 ###### AI disclaimer: I used AI to assist with documentation and licensing.
