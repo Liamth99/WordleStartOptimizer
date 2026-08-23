@@ -7,7 +7,8 @@ public sealed class WordSet
 {
     private string DisplayString => string.Join(", ", Words);
 
-    public string[] Words { get; set; }
+    public short[]  WordIndexes { get; set; }
+    public IEnumerable<string> Words => WordIndexes.Select(x => Data.ValidGuesses[x]);
 
 
     [ThreadStatic]
@@ -50,10 +51,7 @@ public sealed class WordSet
                 ValidAnswers++;
         }
 
-        Words = wordIndexes.Zip(wordIndexes.Select(x => Data.ValidGuesses[x]))
-                           .OrderByDescending(x => Data.WordLetterDistributionScore[x.First])
-                           .Select(x => x.Second)
-                           .ToArray();
+        WordIndexes = wordIndexes.OrderByDescending(x => Data.WordLetterDistributionScore[x]).ToArray();
 
         LetterDistributionOrder = wordIndexes
                                  .Select(x => Data.WordLetterDistributionScore[x])

@@ -116,7 +116,75 @@ internal class Program
     {
         await VersionChecker.CheckVersionAsync();
 
-        AnsiConsole.Write(SetMarkupBuilder.BuildRawDataTable(options.Set));
+        AnsiConsole.MarkupLine(SetMarkupBuilder.FormatWordSetMarkup(options.Set));
+
+        Dictionary<int, double> greenChances  = new () { {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, };
+        Dictionary<int, double> yellowChances = new () { {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, };
+
+        for (int i = 0; i < Data.ValidGuesses.Length; i++)
+        {
+            if(!Data.WordIsValidAnswer[i])
+                continue;
+
+            var ans = Data.ValidGuesses[i];
+
+            int greens = 0, yellows = 0;
+
+            foreach (short guessIndex in options.Set.WordIndexes)
+            {
+                var pattern = Data.PatternMatrix[guessIndex, i];
+
+                int[] colors =
+                    [
+                        pattern % 3,
+                        pattern / 3 % 3,
+                        pattern / 9 % 3,
+                        pattern / 27 % 3,
+                        pattern / 81 % 3,
+                    ];
+
+                foreach (int color in colors)
+                {
+                    if (color is 1)
+                        yellows++;
+                    else if (color is 2)
+                        greens++;
+                }
+            }
+            greenChances[greens]   += 1D / Data.ValidAnswers.Length;
+            yellowChances[yellows] += 1D / Data.ValidAnswers.Length;
+        }
+
+        Color[] colorArr = [Color.DarkRed, Color.OrangeRed1, Color.Orange1, Color.Yellow, Color.Green, Color.Lime];
+
+        var greenChart = new BreakdownChart();
+        greenChart.ValueFormatter = (d, _) => $"{d:P1}";
+        for (int i = 0; i < 6; i++)
+        {
+            greenChart.AddItem($"{i}", greenChances[i], colorArr[i]);
+        }
+
+        var yellowChart = new BreakdownChart();
+        yellowChart.ValueFormatter = (d, _) => $"{d:P1}";
+        for (int i = 0; i < 6; i++)
+        {
+            yellowChart.AddItem($"{i}", yellowChances[i], colorArr[i]);
+        }
+
+        var grid = new Grid();
+
+        grid.AddColumn();
+        grid.AddColumn();
+
+        grid.AddRow(
+            SetMarkupBuilder.BuildRawDataTable(options.Set),
+            new Grid().AddColumn()
+                      .AddRow(new Panel(greenChart).Header("Green Chances"))
+                      .AddRow(new Panel(yellowChart).Header("Yellow Chances"))
+                      .AddRow(new Panel(String.Join(", ", options.Set.WordIndexes.Where(x => Data.WordIsValidAnswer[x]).Select(x => Data.ValidGuesses[x]))).Header("Valid answers").Expand()));
+
+        AnsiConsole.Write(grid);
+
         return 1;
     }
 }
