@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using WordleStartOptimizer.Models;
 using Spectre.Console;
+using Spectre.Console.Rendering;
 using WordleStartOptimizer.Models.Options;
 using WordleStartOptimizer.Output;
 using WordleStartOptimizer.Search;
@@ -118,19 +119,18 @@ internal class Program
 
         AnsiConsole.MarkupLine(SetMarkupBuilder.FormatWordSetMarkup(options.Set));
 
-        Dictionary<int, double> greenChances  = new () { {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, };
-        Dictionary<int, double> yellowChances = new () { {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, };
+        int[,] greenCounts  = new int[options.Set.Count, 5];
+        int[,] yellowCounts = new int[options.Set.Count, 5];
 
         for (int i = 0; i < Data.ValidGuesses.Length; i++)
         {
             if(!Data.WordIsValidAnswer[i])
                 continue;
 
-            int greens = 0, yellows = 0;
-
-            foreach (short guessIndex in options.Set.WordIndexes)
+            for (int j = 0; j < options.Set.WordIndexes.Length; j++)
             {
-                var pattern = Data.PatternMatrix[guessIndex, i];
+                short guessIndex = options.Set.WordIndexes[j];
+                var   pattern    = Data.PatternMatrix[guessIndex, i];
 
                 int[] colors =
                     [
@@ -141,32 +141,16 @@ internal class Program
                         pattern / 81 % 3,
                     ];
 
-                foreach (int color in colors)
+                for (int letterIndex = 0; letterIndex < 5; letterIndex++)
                 {
+                    int color = colors[letterIndex];
+
                     if (color is 1)
-                        yellows++;
+                        yellowCounts[j, letterIndex]++;
                     else if (color is 2)
-                        greens++;
+                        greenCounts[j, letterIndex]++;
                 }
             }
-            greenChances[greens]   += 1D / Data.ValidAnswers.Length;
-            yellowChances[yellows] += 1D / Data.ValidAnswers.Length;
-        }
-
-        Color[] colorArr = [Color.DarkRed, Color.OrangeRed1, Color.Orange1, Color.Yellow, Color.Green, Color.Lime];
-
-        var greenChart = new BreakdownChart();
-        greenChart.ValueFormatter = (d, _) => $"{d:P1}";
-        for (int i = 0; i < 6; i++)
-        {
-            greenChart.AddItem($"{i}", greenChances[i], colorArr[i]);
-        }
-
-        var yellowChart = new BreakdownChart();
-        yellowChart.ValueFormatter = (d, _) => $"{d:P1}";
-        for (int i = 0; i < 6; i++)
-        {
-            yellowChart.AddItem($"{i}", yellowChances[i], colorArr[i]);
         }
 
         var grid = new Grid();
@@ -177,9 +161,8 @@ internal class Program
         grid.AddRow(
             SetMarkupBuilder.BuildRawDataTable(options.Set),
             new Grid().AddColumn()
-                      .AddRow(new Panel(greenChart).Header("Green Chances"))
-                      .AddRow(new Panel(yellowChart).Header("Yellow Chances"))
-                      .AddRow(new Panel(String.Join(", ", options.Set.WordIndexes.Where(x => Data.WordIsValidAnswer[x]).Select(x => Data.ValidGuesses[x]))).Header("Valid answers").Expand()));
+                      .AddRow(SetMarkupBuilder.BuildSetBreakDown(options.Set,  greenCounts, yellowCounts))
+                      .AddRow(new Panel(string.Join(", ", options.Set.WordIndexes.Where(x => Data.WordIsValidAnswer[x]).Select(x => Data.ValidGuesses[x]))).Header("Valid answers").Expand()));
 
         AnsiConsole.Write(grid);
 
