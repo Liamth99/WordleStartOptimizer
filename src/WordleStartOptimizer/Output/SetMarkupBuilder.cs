@@ -90,6 +90,56 @@ public static class SetMarkupBuilder
         return table;
     }
 
+    public static Table BuildSetBreakDown(WordSet set, int[,] greenChances, int[,] yellowChances)
+    {
+        double maxGreen = greenChances.OfType<int>().Max();
+        double maxYellow = yellowChances.OfType<int>().Max();
+
+        var breakDownTable = new Table()
+                            .AddColumn("Word",               tb => tb.Centered())
+                            .AddColumn("Color Heatmap",      tb => tb.Centered())
+                            .AddColumn("Avg Colors",         tb => tb.Centered())
+                            .AddColumn("Word Entropy",       tb => tb.Centered())
+                            .AddColumn("Cumulative Entropy", tb => tb.Centered());
+
+        double prevEntropy = 0;
+        for (int guessIndex = 0; guessIndex < set.WordIndexes.Length; guessIndex++)
+        {
+            string guess   = set.Words.ElementAt(guessIndex);
+            var    heatMap = new Canvas(5, 2);
+            heatMap.MaxWidth = 25;
+            var greenTotalCount = 0;
+            var yellowTotalCount = 0;
+
+            for (int i = 0; i < 5; i++)
+            {
+                var greenMultiple = greenChances[guessIndex, i] / maxGreen;
+                var greenColor    = new Color(0, (byte)(128 * greenMultiple), 0);
+                greenTotalCount   += greenChances[guessIndex, i];
+                heatMap.SetPixel(i, 0, greenColor);
+
+                var yellowMultiple = yellowChances[guessIndex, i] / maxYellow;
+                var yellowColor    = new Color((byte)(255 * yellowMultiple), (byte)(255 * yellowMultiple), 0);
+                yellowTotalCount    += yellowChances[guessIndex, i];
+                heatMap.SetPixel(i, 1, yellowColor);
+            }
+
+            var currentEntropy = set.EntropyAtIndex(guessIndex);
+
+            breakDownTable.AddRow(
+                new Markup($"\n\n[cyan]{guess}[/]", new Style(decoration: Decoration.Bold | Decoration.Underline)),
+                heatMap,
+                new Markup($"\n[green]{greenTotalCount / (double)Data.ValidAnswers.Length:N2}[/]\n\n[yellow]{yellowTotalCount / (double)Data.ValidAnswers.Length:N2}[/]"),
+                new Markup($"\n\n{Data.WordEntropies[set.WordIndexes[guessIndex]]:N3}"),
+                guessIndex is 0 ? new Markup($"\n\n{currentEntropy:N3}") : new Markup($"\n\n{currentEntropy:N3} [green]+{currentEntropy - prevEntropy:N3} (x {Math.Pow(2, currentEntropy - prevEntropy):N1})[/]")
+                );
+
+            prevEntropy = currentEntropy;
+        }
+
+        return breakDownTable;
+    }
+
     private static string ColorNormalizedScore(double s)
         => $"[{(s < .25 ? "red" : s < .75 ? "yellow" : "green")}]{s:N3}[/]";
 }

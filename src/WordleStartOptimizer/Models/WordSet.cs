@@ -10,6 +10,7 @@ public sealed class WordSet
     public short[]  WordIndexes { get; set; }
     public IEnumerable<string> Words => WordIndexes.Select(x => Data.ValidGuesses[x]);
 
+    public int Count { get; init; }
 
     [ThreadStatic]
     private static Dictionary<long, int>? _patternCountCache;
@@ -52,6 +53,7 @@ public sealed class WordSet
         }
 
         WordIndexes = wordIndexes.OrderByDescending(x => Data.WordLetterDistributionScore[x]).ToArray();
+        Count       = wordIndexes.Length;
 
         LetterDistributionOrder = wordIndexes
                                  .Select(x => Data.WordLetterDistributionScore[x])
@@ -78,6 +80,14 @@ public sealed class WordSet
         }
 
         ExpectedRemaining = expectedRemainingSum / total;
+    }
+
+    public double EntropyAtIndex(int index)
+    {
+        if (index > Count)
+            throw new ArgumentOutOfRangeException(nameof(index), "Must be less than the word set count.");
+
+        return new WordSet(WordIndexes.Take(index + 1).ToArray()).Entropy;
     }
 
     public int VowelCount { get; }
