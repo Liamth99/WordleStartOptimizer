@@ -206,7 +206,9 @@ Takes a specific set of words and reports its metrics.
 Evaluate a 2-word set:
 
 ```bash
-WordleStartOptimizer eval crane slate
+WordleStartOptimizer eval lores daint
 ```
+
+<img src="Images/3.png">
 
 ###### AI disclaimer: I used AI to assist with documentation and licensing.

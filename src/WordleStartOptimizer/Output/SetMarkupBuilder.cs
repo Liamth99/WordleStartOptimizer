@@ -114,7 +114,7 @@ public static class SetMarkupBuilder
             for (int i = 0; i < 5; i++)
             {
                 var greenMultiple = greenChances[guessIndex, i] / maxGreen;
-                var greenColor    = new Color(0, (byte)(128 * greenMultiple), 0);
+                var greenColor    = new Color(0, (byte)(255 * greenMultiple), 0);
                 greenTotalCount   += greenChances[guessIndex, i];
                 heatMap.SetPixel(i, 0, greenColor);
 
