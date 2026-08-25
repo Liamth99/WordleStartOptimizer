@@ -64,8 +64,15 @@ public static partial class Data
         WordLetterDistributionScore = new double[ProcessedGuesses.Length];
         WordIsValidAnswer           = new BitArray(ProcessedGuesses.Length);
 
-        var denominator        = 1D / ProcessedGuesses.Length;
         var validAnswerHashSet = ValidAnswers.ToHashSet();
+
+        for (int i = 0; i < ValidGuesses.Length; i++)
+        {
+            var guess = ValidGuesses[i];
+
+            if (validAnswerHashSet.Contains(guess))
+                WordIsValidAnswer[i] = true;
+        }
 
         Parallel.For(0,
                      ValidGuesses.Length,
@@ -81,7 +88,7 @@ public static partial class Data
                          {
                              lock (_lock)
                              {
-                                 LetterDistribution[c] += denominator;
+                                 LetterDistribution[c] += 1D / ProcessedGuesses.Length;
                              }
                          }
 
@@ -106,8 +113,9 @@ public static partial class Data
 
                                  if (c == answer[charI])
                                  {
-                                     GreenLetters[i] += denominator;
-                                     states[charI]   =  2;
+                                     if(WordIsValidAnswer[j])
+                                        GreenLetters[i] += 1D / ValidAnswers.Length;
+                                     states[charI] =  2;
                                      remaining[c - 'a']--;
                                  }
                              }
@@ -122,8 +130,9 @@ public static partial class Data
 
                                  if (remaining[c - 'a'] > 0)
                                  {
+                                     if(WordIsValidAnswer[j])
+                                         YellowLetters[i] += 1D / ValidAnswers.Length;
                                      states[charI] = 1;
-                                     YellowLetters[i] += denominator;
                                      remaining[c - 'a']--;
                                  }
                                  else
@@ -169,9 +178,6 @@ public static partial class Data
         {
             var guess = ValidGuesses[i];
             WordLetterDistributionScore[i] = guess.Select(c => LetterDistribution[c]).Sum();
-
-            if (validAnswerHashSet.Contains(guess))
-                WordIsValidAnswer[i] = true;
 
             double probability = i / (double)ProcessedGuesses.Length;
             EntropyContributionByCount[i] = -probability * Math.Log2(probability);
