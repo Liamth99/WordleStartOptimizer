@@ -121,6 +121,7 @@ internal class Program
 
         int[,] greenCounts  = new int[options.Set.Count, 5];
         int[,] yellowCounts = new int[options.Set.Count, 5];
+        var    validWords   = options.Set.WordIndexes.Where(x => Data.WordIsValidAnswer[x]).Select(x => Data.ValidGuesses[x]).ToArray();
 
         for (int i = 0; i < Data.ValidGuesses.Length; i++)
         {
@@ -158,11 +159,17 @@ internal class Program
         grid.AddColumn();
         grid.AddColumn();
 
+        var leftColumnContent = new Grid()
+                               .AddColumn()
+                               .AddRow(SetMarkupBuilder.BuildRawDataTable(options.Set));
+
+        if (validWords.Length > 0)
+            leftColumnContent.AddRow(new Panel(string.Join(", ", validWords.Select(x => $"[cyan]{x}[/]"))).Header("Valid answers").Expand());
+        
         grid.AddRow(
-            SetMarkupBuilder.BuildRawDataTable(options.Set),
-            new Grid().AddColumn()
-                      .AddRow(SetMarkupBuilder.BuildSetBreakDown(options.Set,  greenCounts, yellowCounts))
-                      .AddRow(new Panel(string.Join(", ", options.Set.WordIndexes.Where(x => Data.WordIsValidAnswer[x]).Select(x => Data.ValidGuesses[x]))).Header("Valid answers").Expand()));
+            leftColumnContent,
+            SetMarkupBuilder.BuildSetBreakDown(options.Set,  greenCounts, yellowCounts)
+        );
 
         AnsiConsole.Write(grid);
 
