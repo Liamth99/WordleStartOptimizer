@@ -83,6 +83,7 @@ public static partial class Data
                      i =>
                      {
                          var guess = ProcessedGuesses[i];
+                         int[] patternCounts = new int[243];
 
                          foreach (char c in guess.Chars)
                          {
@@ -148,14 +149,7 @@ public static partial class Data
                              }
 
                              PatternMatrix[i, j] = code;
-                         }
-
-                         int[] patternCounts = new int[243];
-
-                         for (int answerIndex = 0; answerIndex < ProcessedGuesses.Length; answerIndex++)
-                         {
-                             int patternCode = PatternMatrix[i, answerIndex];
-                             patternCounts[patternCode]++;
+                             patternCounts[code]++;
                          }
 
                          double entropy = 0;

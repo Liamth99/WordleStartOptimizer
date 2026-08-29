@@ -1,7 +1,6 @@
 ﻿using CommandLine;
 using WordleStartOptimizer.Models;
 using Spectre.Console;
-using Spectre.Console.Rendering;
 using WordleStartOptimizer.Models.Options;
 using WordleStartOptimizer.Output;
 using WordleStartOptimizer.Search;
@@ -25,7 +24,7 @@ internal class Program
     private static async Task<int> RunGenSetAsync(SetGenerationOptions options)
     {
         await VersionChecker.CheckVersionAsync();
-        Data.Initialize(options.ThreadCount);
+
         if (options.RequiredWordsIndexes?.Length >= options.SetSize)
         {
             AnsiConsole.WriteException(new ArgumentException($"Required words length must be less than Set Size ({options.SetSize}).", nameof(options.RequiredWords)));

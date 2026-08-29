@@ -1,8 +1,7 @@
 using System.Collections.Concurrent;
-using WordleStartOptimizer.Models;
 using WordleStartOptimizer.Models.Options;
 
-namespace WordleStartOptimizer.Search;
+namespace WordleStartOptimizer.Models.Search;
 
 public static class CandidateSearcher
 {
