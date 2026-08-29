@@ -2,8 +2,8 @@
 using WordleStartOptimizer.Models;
 using Spectre.Console;
 using WordleStartOptimizer.Models.Options;
+using WordleStartOptimizer.Models.Search;
 using WordleStartOptimizer.Output;
-using WordleStartOptimizer.Search;
 
 namespace WordleStartOptimizer;
 
@@ -13,11 +13,12 @@ internal class Program
     {
         Data.Initialize(Environment.ProcessorCount);
         return await Parser.Default
-                           .ParseArguments<SetGenerationOptions, EvaluationOptions>(args)
+                           .ParseArguments<SetGenerationOptions, EvaluationOptions, SolveOptions>(args)
                            .MapResult(
                                 (SetGenerationOptions o) => RunGenSetAsync(o),
                                 (EvaluationOptions    o) => RunEvaluateSetAsync(o),
-                                 _ => Task.FromResult(1)
+                                (SolveOptions         o) => RunSolveAsync(o),
+                                _ => Task.FromResult(1)
                                 );
     }
 
@@ -171,6 +172,51 @@ internal class Program
         );
 
         AnsiConsole.Write(grid);
+
+        return 0;
+    }
+
+    private static async Task<int> RunSolveAsync(SolveOptions solveOptions)
+    {
+        await VersionChecker.CheckVersionAsync();
+
+        var validIndexes = solveOptions.GetValidGuesses();
+        List <(short wordIndex, int worstRemaining, double entropy)> results = [];
+
+        foreach (short index in validIndexes)
+        {
+            Dictionary<byte, int> patternCounts = [];
+            foreach (short validIndex in validIndexes)
+            {
+                var pattern = Data.PatternMatrix[index, validIndex];
+
+                if (!patternCounts.TryAdd(pattern, 1))
+                    patternCounts[pattern]++;
+            }
+
+            double entropy        = 0;
+            int    worstRemaining = 0;
+
+            foreach (int patternCount in patternCounts.Values)
+            {
+                var probability        = patternCount / (double)validIndexes.Count;
+                entropy -= probability * Math.Log2(probability);
+
+                if (worstRemaining < patternCount)
+                    worstRemaining = patternCount;
+            }
+
+            results.Add(new (index, worstRemaining, entropy));
+        }
+
+        var table = new Table().AddColumns("Word", "Worst Case Remaining", "Entropy");
+
+        foreach (var word in results.OrderByDescending(x => x.entropy).ThenByDescending(x => Data.WordIsValidAnswer[x.wordIndex]))
+        {
+            table.AddRow($"[cyan]{Data.ValidGuesses[word.wordIndex]}[/]", $"{word.worstRemaining:N0}", $"{word.entropy:N3}");
+        }
+
+        AnsiConsole.Write(table);
 
         return 0;
     }
