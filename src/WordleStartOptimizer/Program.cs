@@ -48,20 +48,23 @@ internal class Program
         {
             AnsiConsole.MarkupLine($"Excluding blocked letters: {string.Join(", ", options.BlockedLetters.Select(x => $"[red]{x}[/]"))}");
         }
+
+        AnsiConsole.MarkupLine($"Effort set to [red]{options.Effort}[/], using top [red]{options.WordsToCheck:N0}[/] words to generate sets.");
+
         if (options.AllowDuplicateLetters)
         {
             var sampleSize = options.SetSize - (options.RequiredWordsIndexes?.Length ?? 0);
-
-            BigInteger maximumCandidates= 1;
+            BigInteger maximumCandidates = 1;
 
             for (int i = 1; i <= sampleSize; i++)
-                maximumCandidates = maximumCandidates * (Data.ValidGuesses.Length - sampleSize + i) / i;
+                maximumCandidates = maximumCandidates * (options.WordsToCheck - sampleSize + i) / i;
 
-            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates ([red]{(decimal)maximumCandidates * Unsafe.SizeOf<CandidateSet>() / 1073741824M:N2}[/] GiB).");
+            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates (~[red]{(decimal)maximumCandidates! * Unsafe.SizeOf<CandidateSet>() / 1073741824M:N2}[/] GiB).");
 
             if (maximumCandidates > int.MaxValue)
             {
-                throw new InvalidOperationException("Potential candidate count is too high.");
+                AnsiConsole.WriteLine();
+                throw new InvalidOperationException("Potential candidate count is too high. Try lowering Set size, adding required words or lowing generation effort.");
             }
         }
 
