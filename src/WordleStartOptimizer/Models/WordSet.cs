@@ -61,7 +61,10 @@ public sealed class WordSet
                                  .Select((x, i) => x * (1 + .2 * i))
                                  .Sum();
 
-        VowelCount = Words.Sum(x => x.Count(c => c is 'a' or 'e' or 'i' or 'o' or 'u' or 'y'));
+        VowelCount = string
+                    .Join("", Words).Where((c, i) => c is 'a' or 'e' or 'i' or 'o' or 'u' || (c is 'y' && (i % 4 is not 0 && i % 5 is not 0)))
+                    .Distinct()
+                    .Count();
 
         Entropy            = 0D;
         WorstCaseRemaining = 0;

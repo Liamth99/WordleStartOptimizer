@@ -175,6 +175,9 @@ public class SetGenerationOptions
 
     public WordMask? RequiredWordMask { get; private init; }
 
+    [Option("allowDuplicateLetters", Default = false, HelpText = "Whether duplicate letters are allowed in the generated starting word set")]
+    public bool AllowDuplicateLetters { get; private init; }
+
     [Option("top", Default = 10, HelpText = "How many results to show when exporting data.")]
     public int TopResults { get; init; }
 

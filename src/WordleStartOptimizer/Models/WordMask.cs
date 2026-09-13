@@ -22,7 +22,14 @@ public readonly struct WordMask : IEqualityComparer<WordMask>, IEquatable<WordMa
 
     public override string ToString() => string.Join("", Chars);
 
-    public char[] Chars => [this[0], this[1], this[2], this[3], this[4],];
+    public char[] Chars
+    {
+        get
+        {
+            var word = this[0];
+            return [word, this[1], this[2], this[3], this[4],];
+        }
+    }
 
     public bool ContainsDuplicateLetters => LetterMask < 0;
 

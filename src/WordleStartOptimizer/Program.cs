@@ -1,4 +1,6 @@
-﻿using CommandLine;
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
+using CommandLine;
 using WordleStartOptimizer.Models;
 using Spectre.Console;
 using WordleStartOptimizer.Models.Options;
@@ -46,6 +48,22 @@ internal class Program
         {
             AnsiConsole.MarkupLine($"Excluding blocked letters: {string.Join(", ", options.BlockedLetters.Select(x => $"[red]{x}[/]"))}");
         }
+        if (options.AllowDuplicateLetters)
+        {
+            var sampleSize = options.SetSize - (options.RequiredWordsIndexes?.Length ?? 0);
+
+            BigInteger maximumCandidates= 1;
+
+            for (int i = 1; i <= sampleSize; i++)
+                maximumCandidates = maximumCandidates * (Data.ValidGuesses.Length - sampleSize + i) / i;
+
+            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates ([red]{(decimal)maximumCandidates * (Unsafe.SizeOf<CandidateSet>() + sizeof(short) * options.SetSize) / 1073741824M:N2}[/] GiB).");
+
+            if (maximumCandidates > int.MaxValue)
+            {
+                throw new InvalidOperationException("Potential candidate count is too high.");
+            }
+        }
 
         var scoredSets = RunSearch(options);
 
@@ -90,7 +108,11 @@ internal class Program
                       var candidateTask = ctx.AddTask("Creating candidates", maxValue: 1);
                       candidateTask.StartTask();
 
-                      var candidates = CandidateSearcher.GenerateCandidates(options, p => candidateTask.Value(p));
+                      var candidates = CandidateSearcher.GenerateCandidates(options, (p, n) =>
+                                                                                     {
+                                                                                         candidateTask.Value(p);
+                                                                                         candidateTask.Description($"Creating candidates, [green]{n:N0}[/] created.");
+                                                                                     });
 
                       candidateTask.Description($"Found [Aqua]{candidates.Length:N0}[/] candidates.");
                       candidateTask.Value(1);
