@@ -5,7 +5,7 @@ namespace WordleStartOptimizer.Models.Search;
 
 public static class CandidateSearcher
 {
-    public static CandidateSet[] GenerateCandidates(SetGenerationOptions options, Action<double>? onProgress = null)
+    public static CandidateSet[] GenerateCandidates(SetGenerationOptions options, Action<double, int>? onProgress = null)
     {
         ConcurrentBag<CandidateSet> candidates = [];
 
@@ -34,7 +34,7 @@ public static class CandidateSearcher
                     if (progress >= lastProgress + .01d)
                     {
                         lastProgress = progress;
-                        onProgress(progress);
+                        onProgress(progress, candidates.Count);
                     }
                 }
             });
@@ -46,9 +46,8 @@ public static class CandidateSearcher
     {
         var mask = Data.ProcessedGuesses[firstWordIndex].LetterMask;
 
-        if (mask < 0) // Word contains doubles and should not be included in a valid set
+        if (!options.AllowDuplicateLetters && mask < 0) // Word contains doubles and should not be included in a valid set
             return;
-
 
         var chosen = Enumerable.Repeat((short)0, options.SetSize).ToArray();
         chosen[0] = (short)firstWordIndex;
@@ -61,7 +60,7 @@ public static class CandidateSearcher
             {
                 chosen[setIndex] = wordIndex;
 
-                if((Data.ProcessedGuesses[wordIndex].LetterMask & mask) > 0) // Set would contain duplicate letters
+                if(!options.AllowDuplicateLetters && (Data.ProcessedGuesses[wordIndex].LetterMask & mask) > 0) // Set would contain duplicate letters
                     return;
 
                 mask |= Data.ProcessedGuesses[wordIndex].LetterMask;
@@ -103,7 +102,7 @@ public static class CandidateSearcher
         {
             var mask = Data.ProcessedGuesses[i].LetterMask;
 
-            if (mask < 0 || (usedMask & mask) is not 0)
+            if (!options.AllowDuplicateLetters && (mask < 0 || (usedMask & mask) is not 0))
                 continue;
 
             chosen[depth] = i;
