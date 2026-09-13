@@ -88,11 +88,7 @@ public static class CandidateSearcher
             }
 
             candidates.Add(
-                new CandidateSet()
-                {
-                    WordIndexes = words,
-                    PreScore    = preScore,
-                }
+                new CandidateSet(words, preScore)
             );
 
             return;

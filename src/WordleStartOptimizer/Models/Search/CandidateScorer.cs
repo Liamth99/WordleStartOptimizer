@@ -36,7 +36,7 @@ public static class CandidateScorer
             new ParallelOptions { MaxDegreeOfParallelism = options.ThreadCount, },
             candidate =>
             {
-                scoredSets.Add(new WordSet(candidate.WordIndexes));
+                scoredSets.Add(new WordSet(candidate.WordIndexes()));
 
                 Interlocked.Increment(ref completed);
 

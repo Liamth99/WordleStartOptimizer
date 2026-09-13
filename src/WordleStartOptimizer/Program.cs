@@ -57,7 +57,7 @@ internal class Program
             for (int i = 1; i <= sampleSize; i++)
                 maximumCandidates = maximumCandidates * (Data.ValidGuesses.Length - sampleSize + i) / i;
 
-            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates ([red]{(decimal)maximumCandidates * (Unsafe.SizeOf<CandidateSet>() + sizeof(short) * options.SetSize) / 1073741824M:N2}[/] GiB).");
+            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates ([red]{(decimal)maximumCandidates * Unsafe.SizeOf<CandidateSet>() / 1073741824M:N2}[/] GiB).");
 
             if (maximumCandidates > int.MaxValue)
             {
