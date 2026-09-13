@@ -90,7 +90,11 @@ internal class Program
                       var candidateTask = ctx.AddTask("Creating candidates", maxValue: 1);
                       candidateTask.StartTask();
 
-                      var candidates = CandidateSearcher.GenerateCandidates(options, p => candidateTask.Value(p));
+                      var candidates = CandidateSearcher.GenerateCandidates(options, (p, n) =>
+                                                                                     {
+                                                                                         candidateTask.Value(p);
+                                                                                         candidateTask.Description($"Creating candidates, [green]{n:N0}[/] created.");
+                                                                                     });
 
                       candidateTask.Description($"Found [Aqua]{candidates.Length:N0}[/] candidates.");
                       candidateTask.Value(1);
