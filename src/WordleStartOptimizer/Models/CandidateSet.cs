@@ -11,11 +11,11 @@ public readonly struct CandidateSet
     {
         var indexArr = indexes as short[] ?? indexes.ToArray();
 
-        _index1 = indexArr.Length >= 1 ? indexArr[0] : short.MaxValue;
-        _index2 = indexArr.Length >= 2 ? indexArr[1] : short.MaxValue;
-        _index3 = indexArr.Length >= 3 ? indexArr[2] : short.MaxValue;
-        _index4 = indexArr.Length >= 4 ? indexArr[3] : short.MaxValue;
-        _index5 = indexArr.Length >= 5 ? indexArr[4] : short.MaxValue;
+        _index1 = indexArr.Length >= 1 ? indexArr[0] : (short)-1;
+        _index2 = indexArr.Length >= 2 ? indexArr[1] : (short)-1;
+        _index3 = indexArr.Length >= 3 ? indexArr[2] : (short)-1;
+        _index4 = indexArr.Length >= 4 ? indexArr[3] : (short)-1;
+        _index5 = indexArr.Length >= 5 ? indexArr[4] : (short)-1;
     }
 
     public short WordIndex(int i)
@@ -44,7 +44,7 @@ public readonly struct CandidateSet
         {
             var index = WordIndex(i);
 
-            if (index is short.MaxValue)
+            if (index is -1)
                 break;
 
             results.Add(index);
