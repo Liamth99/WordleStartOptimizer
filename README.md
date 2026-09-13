@@ -25,15 +25,20 @@ The optimizer works in two stages.
 
 ### Candidate Generation
 
-The program generates possible opening word combinations while enforcing one important rule:
+The program generates possible opening word combinations, by default sets cannot contain duplicate letters, but this can be overridden with `--allowDuplicateLetters`. 
+The search effort can be adjusted to reduce the amount of candidates generated, by only using the words with the highest entropy.
 
-> No letter may appear more than once across the entire starting set.
-
-This reducess the posible candidate count to something more manageable. Then each candidate receives a quick pre-score based on the combined entropy of its words. This allows weaker candidates to be discarded before expensive evaluation.
+| Effort | Candidates Fully Scored |
+|--------|------------------------:|
+| Min    |                  Top 5% |
+| Low    |                 Top 25% |
+| Normal |                 Top 50% |
+| High   |                 Top 75% |
+| Max    |              Everything |
 
 ### Full Scoring
 
-The strongest candidates are evaluated against the Wordle answer list.
+All the candidates are evaluated against the Wordle answer list.
 
 For every possible answer, the program simulates playing the opening words and calculates the feedback patterns produced. These patterns are then used to measure how effectively the opening words reduce uncertainty making the game easier by reducing the number of possible remaining valid words.
 
@@ -112,21 +117,6 @@ Higher is better.
 Rewards commonly occurring Wordle letters and prioritizes stronger words earlier in the opening sequence.
 
 Higher is better.
-
----
-
-## Search Effort
-
-Fully scoring every candidate is expensive.
-
-The optimizer first performs a quick pre-score, then only fully evaluates the strongest candidates.
-
-| Effort | Candidates Fully Scored |
-| ------ | ----------------------: |
-| Low    |                  Top 5% |
-| Normal |                 Top 25% |
-| High   |                 Top 50% |
-| Max    |              Everything |
 
 ## Usage
 
