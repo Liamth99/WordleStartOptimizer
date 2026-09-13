@@ -108,11 +108,14 @@ internal class Program
                       var candidateTask = ctx.AddTask("Creating candidates", maxValue: 1);
                       candidateTask.StartTask();
 
-                      var candidates = CandidateSearcher.GenerateCandidates(options, (p, n) =>
-                                                                                     {
-                                                                                         candidateTask.Value(p);
-                                                                                         candidateTask.Description($"Creating candidates, [green]{n:N0}[/] created.");
-                                                                                     });
+                      CandidateSet[] candidates = CandidateSearcher.GenerateCandidates(
+                              options,
+                              (p, n) =>
+                              {
+                                  candidateTask.Value(p);
+                                  candidateTask.Description($"Creating candidates, [green]{n:N0}[/] created.");
+                              }
+                          );
 
                       candidateTask.Description($"Found [Aqua]{candidates.Length:N0}[/] candidates.");
                       candidateTask.Value(1);
@@ -123,10 +126,10 @@ internal class Program
                           scoredSets = [];
                           return;
                       }
-                      var candidatesChecking = CandidateScorer.SelectCandidatesToScore(candidates, options);
-                      var scoringTask        = ctx.AddTask($"Performing full scoring on [green]{candidatesChecking.Length:N0}[/] candidates", maxValue: 1);
 
-                      scoredSets = CandidateScorer.ScoreCandidates(candidatesChecking, options, p => scoringTask.Value(p));
+                      var scoringTask = ctx.AddTask("Performing full candidate scoring", maxValue: 1);
+
+                      scoredSets = CandidateScorer.ScoreCandidates(candidates, options, p => scoringTask.Value(p));
 
                       scoringTask.Value(1);
                       scoringTask.StopTask();

@@ -16,7 +16,7 @@ public static class CandidateSearcher
 
         Parallel.For(
             0,
-            Data.ProcessedGuesses.Length,
+            options.WordsToCheck,
             new ParallelOptions { MaxDegreeOfParallelism = options.ThreadCount, },
             i =>
             {
@@ -27,7 +27,7 @@ public static class CandidateSearcher
                 if(onProgress is null)
                     return;
 
-                var progress = (double)completed / Data.ProcessedGuesses.Length;
+                var progress = (double)completed / options.WordsToCheck;
 
                 lock (progressLock)
                 {
@@ -88,13 +88,13 @@ public static class CandidateSearcher
             }
 
             candidates.Add(
-                new CandidateSet(words, preScore)
+                new CandidateSet(words)
             );
 
             return;
         }
 
-        for (short i = start; i < Data.ProcessedGuesses.Length; i++)
+        for (short i = start; i < options.WordsToCheck; i++)
         {
             var mask = Data.ProcessedGuesses[i].LetterMask;
 
