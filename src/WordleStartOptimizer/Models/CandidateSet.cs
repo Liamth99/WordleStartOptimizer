@@ -39,7 +39,7 @@ public readonly struct CandidateSet
 
     public short[] WordIndexes()
     {
-        List<short> results = [];
+        List<short> results = new (5);
         for (int i = 0; i < 8; i++)
         {
             var index = WordIndex(i);
