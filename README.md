@@ -4,12 +4,11 @@ I'm bad at wordle. So rather then getting better, I thought I'd use a skill I ac
 
 A command-line tool that searches for high-quality sets of Wordle opening words.
 
-Rather than ranking individual words, Wordle Start Optimizer searches combinations of 2–5 words and scores them using a weighted combination of entropy, solution-space reduction, letter coverage, and other heuristics.
+Rather than ranking individual words, Wordle Start Optimizer searches combinations of 2–5 words and scores them using a weighted combination of several metrics.
 
 ## Features
 
 * Searches every valid combination of **2–5 starting words**
-* Eliminates combinations containing duplicate letters
 * Multi-threaded search for improved performance
 * Configurable scoring weights
 * Adjustable search effort to trade accuracy for speed
@@ -21,14 +20,14 @@ Rather than ranking individual words, Wordle Start Optimizer searches combinatio
 
 ## How It Works
 
-The optimizer works in two stages.
+The program works in two stages.
 
 ### Candidate Generation
 
 The program generates possible opening word combinations, by default sets cannot contain duplicate letters, but this can be overridden with `--allowDuplicateLetters`. 
 The search effort can be adjusted to reduce the amount of candidates generated, by only using the words with the highest entropy.
 
-| Effort | Candidates Fully Scored |
+| Effort |       Candidates Scored |
 |--------|------------------------:|
 | Min    |                  Top 5% |
 | Low    |                 Top 25% |
@@ -36,23 +35,17 @@ The search effort can be adjusted to reduce the amount of candidates generated, 
 | High   |                 Top 75% |
 | Max    |              Everything |
 
-### Full Scoring
+### Candidate Scoring
 
 All the candidates are evaluated against the Wordle answer list.
 
 For every possible answer, the program simulates playing the opening words and calculates the feedback patterns produced. These patterns are then used to measure how effectively the opening words reduce uncertainty making the game easier by reducing the number of possible remaining valid words.
 
-In other words:
-
-> It spends thousands of guesses, eliminating possibility early so you don't have to.
-
-## Scoring
-
 Each metric is normalized between **0 and 1**, multiplied by its configured weight, and combined into a final score.
 
 The default scoring model attempts to balance mathematical information gain with practical human play.
 
-> note: this score is only meaningful in the run it is calculated for, you should not compare scores between different runs, instead use the raw stats which can be shown by using the `--verboseScoring` flag.
+> note: this score is only meaningful in the run it is calculated for, you should not compare scores between different runs, instead use the raw stats which can be shown by using the `--verboseScoring` flag to compare sets from different runs.
 
 ### Entropy
 
