@@ -27,12 +27,13 @@ public class SetGenerationOptions
     [Option("effort", Default = EffortLevel.Normal, HelpText = "How many candidates to fully score after pre-scoring. Values: Low, Normal, High, Max.")]
     public EffortLevel Effort { get; init; }
 
-    public double EffortPercentage => Effort switch
+    public int WordsToCheck => Effort switch
     {
-        EffortLevel.Low    => 0.05,
-        EffortLevel.Normal => 0.25,
-        EffortLevel.High   => 0.50,
-        EffortLevel.Max    => 1.00,
+        EffortLevel.Min    => (int)(0.05 * Data.ValidGuesses.Length),
+        EffortLevel.Low    => (int)(0.25 * Data.ValidGuesses.Length),
+        EffortLevel.Normal => (int)(0.50 * Data.ValidGuesses.Length),
+        EffortLevel.High   => (int)(0.75 * Data.ValidGuesses.Length),
+        EffortLevel.Max    => (int)(1.00 * Data.ValidGuesses.Length),
         _                  => throw new ArgumentOutOfRangeException(),
     };
 

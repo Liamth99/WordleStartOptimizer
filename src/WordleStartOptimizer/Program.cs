@@ -48,20 +48,23 @@ internal class Program
         {
             AnsiConsole.MarkupLine($"Excluding blocked letters: {string.Join(", ", options.BlockedLetters.Select(x => $"[red]{x}[/]"))}");
         }
+
+        AnsiConsole.MarkupLine($"Effort set to [red]{options.Effort}[/], using top [red]{options.WordsToCheck:N0}[/] words to generate sets.");
+
         if (options.AllowDuplicateLetters)
         {
             var sampleSize = options.SetSize - (options.RequiredWordsIndexes?.Length ?? 0);
-
-            BigInteger maximumCandidates= 1;
+            BigInteger maximumCandidates = 1;
 
             for (int i = 1; i <= sampleSize; i++)
-                maximumCandidates = maximumCandidates * (Data.ValidGuesses.Length - sampleSize + i) / i;
+                maximumCandidates = maximumCandidates * (options.WordsToCheck - sampleSize + i) / i;
 
-            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates ([red]{(decimal)maximumCandidates * (Unsafe.SizeOf<CandidateSet>() + sizeof(short) * options.SetSize) / 1073741824M:N2}[/] GiB).");
+            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates (~[red]{(decimal)maximumCandidates! * Unsafe.SizeOf<CandidateSet>() / 1073741824M:N2}[/] GiB).");
 
             if (maximumCandidates > int.MaxValue)
             {
-                throw new InvalidOperationException("Potential candidate count is too high.");
+                AnsiConsole.WriteLine();
+                throw new InvalidOperationException("Potential candidate count is too high. Try lowering Set size, adding required words or lowing generation effort.");
             }
         }
 
@@ -108,11 +111,14 @@ internal class Program
                       var candidateTask = ctx.AddTask("Creating candidates", maxValue: 1);
                       candidateTask.StartTask();
 
-                      var candidates = CandidateSearcher.GenerateCandidates(options, (p, n) =>
-                                                                                     {
-                                                                                         candidateTask.Value(p);
-                                                                                         candidateTask.Description($"Creating candidates, [green]{n:N0}[/] created.");
-                                                                                     });
+                      CandidateSet[] candidates = CandidateSearcher.GenerateCandidates(
+                              options,
+                              (p, n) =>
+                              {
+                                  candidateTask.Value(p);
+                                  candidateTask.Description($"Creating candidates, [green]{n:N0}[/] created.");
+                              }
+                          );
 
                       candidateTask.Description($"Found [Aqua]{candidates.Length:N0}[/] candidates.");
                       candidateTask.Value(1);
@@ -123,10 +129,10 @@ internal class Program
                           scoredSets = [];
                           return;
                       }
-                      var candidatesChecking = CandidateScorer.SelectCandidatesToScore(candidates, options);
-                      var scoringTask        = ctx.AddTask($"Performing full scoring on [green]{candidatesChecking.Length:N0}[/] candidates", maxValue: 1);
 
-                      scoredSets = CandidateScorer.ScoreCandidates(candidatesChecking, options, p => scoringTask.Value(p));
+                      var scoringTask = ctx.AddTask("Performing full candidate scoring", maxValue: 1);
+
+                      scoredSets = CandidateScorer.ScoreCandidates(candidates, options, p => scoringTask.Value(p));
 
                       scoringTask.Value(1);
                       scoringTask.StopTask();
@@ -203,6 +209,12 @@ internal class Program
         await VersionChecker.CheckVersionAsync();
 
         var validIndexes = solveOptions.GetValidGuesses();
+
+        if (validIndexes.Count is 0)
+            AnsiConsole.MarkupLine("[red]No valid answers.[/]");
+        else if (validIndexes.Count is 1)
+            AnsiConsole.MarkupLine($"Answer is [cyan]{validIndexes.First()}[/]");
+
         List <(short wordIndex, int worstRemaining, double entropy)> results = [];
 
         foreach (short index in validIndexes)

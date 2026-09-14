@@ -5,24 +5,6 @@ namespace WordleStartOptimizer.Models.Search;
 
 public static class CandidateScorer
 {
-    public static CandidateSet[] SelectCandidatesToScore(CandidateSet[] candidates, SetGenerationOptions options)
-    {
-        if (options.Effort is EffortLevel.Max)
-            return candidates;
-
-        int candidatesCheckingCount = int.Min(
-            candidates.Length,
-            int.Max(
-                100_000,
-                (int)Math.Round(candidates.Length * options.EffortPercentage, MidpointRounding.AwayFromZero))
-            );
-
-        return candidates
-              .OrderByDescending(candidate => candidate.PreScore)
-              .Take(candidatesCheckingCount)
-              .ToArray();
-    }
-
     public static WordSet[] ScoreCandidates(CandidateSet[] candidates, SetGenerationOptions options, Action<double>? onProgress = null)
     {
         ConcurrentBag<WordSet> scoredSets = [];
@@ -36,7 +18,7 @@ public static class CandidateScorer
             new ParallelOptions { MaxDegreeOfParallelism = options.ThreadCount, },
             candidate =>
             {
-                scoredSets.Add(new WordSet(candidate.WordIndexes));
+                scoredSets.Add(new WordSet(candidate.WordIndexes()));
 
                 Interlocked.Increment(ref completed);
 
