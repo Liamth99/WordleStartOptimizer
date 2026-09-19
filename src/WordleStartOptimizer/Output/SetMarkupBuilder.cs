@@ -19,7 +19,7 @@ public static class SetMarkupBuilder
         table.AddRow("Worst Case Remaining",      $"{set.WorstCaseRemaining:N0}");
         table.AddRow("Avg Green Letters",         $"{set.AvgGreen:N2}");
         table.AddRow("Avg Yellow Letters",        $"{set.AvgYellow:N2}");
-        table.AddRow("Vowel Score",               $"{set.VowelCount:N0}");
+        table.AddRow("Vowel Score",               $"{set.VowelScore:N2}");
         table.AddRow("Letter Distribution Score", $"{set.LetterDistributionOrder:N3}");
         table.AddRow("Valid Answers",             $"{set.ValidAnswers:N0}");
 
@@ -68,7 +68,7 @@ public static class SetMarkupBuilder
 
         table.AddRow(
             "Vowel Score",
-            $"{set.VowelCount:N0}",
+            $"{set.VowelScore:N2}",
             ColorNormalizedScore(context.NormalizedVowelCount(set)),
             $"{options.VowelCountModifier:N2}",
             $"{context.NormalizedVowelCount(set)* options.VowelCountModifier:N3}");

@@ -37,7 +37,7 @@ public sealed class WordSetScoringContext
         => Yellow.Normalize(set.AvgYellow);
 
     public double NormalizedVowelCount(WordSet set)
-        => set.VowelCount / 6D;
+        => set.VowelScore;
 
     public double NormalizedLetterDistributionOrder(WordSet set)
         => LetterDistributionOrder.Normalize(set.LetterDistributionOrder);

@@ -53,6 +53,7 @@ public sealed class WordSet
         }
 
         WordIndexes = wordIndexes.OrderByDescending(x => Data.WordLetterDistributionScore[x]).ToArray();
+        var wordArr = Words.ToArray();
         Count       = wordIndexes.Length;
 
         LetterDistributionOrder = wordIndexes
@@ -61,10 +62,58 @@ public sealed class WordSet
                                  .Select((x, i) => x * (1 + .2 * i))
                                  .Sum();
 
-        VowelCount = string
-                    .Join("", Words).Where((c, i) => c is 'a' or 'e' or 'i' or 'o' or 'u' || (c is 'y' && (i % 4 is not 0 && i % 5 is not 0)))
-                    .Distinct()
-                    .Count();
+        VowelScore = 0D;
+
+        var aPresent = false;
+        var ePresent = false;
+        var iPresent = false;
+        var oPresent = false;
+        var uPresent = false;
+        var yPresent = false;
+
+        for (int i = 0; i < Count; i++)
+        for (int j = 0; j < 5; j++)
+        {
+            var c = wordArr[i][j];
+
+            switch (c)
+            {
+                case 'a':
+                    aPresent = true;
+                    break;
+                case 'e':
+                    ePresent = true;
+                    break;
+                case 'i':
+                    iPresent = true;
+                    break;
+                case 'o':
+                    oPresent = true;
+                    break;
+                case 'u':
+                    uPresent = true;
+                    break;
+                case 'y':
+                    if(j is not 0 and not 4)
+                        yPresent = true;
+                    break;
+            }
+        }
+
+        if(aPresent)
+            VowelScore += Data.LetterDistribution['a'];
+        if(ePresent)
+            VowelScore += Data.LetterDistribution['e'];
+        if(iPresent)
+            VowelScore += Data.LetterDistribution['i'];
+        if(oPresent)
+            VowelScore += Data.LetterDistribution['o'];
+        if(uPresent)
+            VowelScore += Data.LetterDistribution['u'];
+        if(yPresent)
+            VowelScore += Data.YAsVowelDistributionScore;
+
+        VowelScore /= Data.TotalVowelLetterDistributionScore;
 
         Entropy            = 0D;
         WorstCaseRemaining = 0;
@@ -93,7 +142,7 @@ public sealed class WordSet
         return new WordSet(WordIndexes.Take(index + 1).ToArray()).Entropy;
     }
 
-    public int VowelCount { get; }
+    public double VowelScore { get; }
     public double Entropy { get; }
     public double AvgGreen { get; }
     public double AvgYellow { get; }

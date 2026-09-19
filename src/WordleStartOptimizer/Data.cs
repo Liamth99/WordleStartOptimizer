@@ -38,6 +38,12 @@ public static partial class Data
     /// This score is used to prioritize words that are expected to provide more informative feedback during
     public static double[] WordLetterDistributionScore = [];
 
+    /// The cumulative distribution score of vowel letters ('a', 'e', 'i', 'o', 'u', 'y') across all words.
+    public static double TotalVowelLetterDistributionScore = 0;
+
+    /// The cumulative score representing the distribution of the letter 'y' being treated as a vowel.
+    public static double YAsVowelDistributionScore = 0;
+
     /// A bitmask that represents whether each word in the list of valid guesses is a valid answer.
     public static BitArray WordIsValidAnswer = null!;
 
@@ -85,11 +91,15 @@ public static partial class Data
                          var guess = ProcessedGuesses[i];
                          int[] patternCounts = new int[243];
 
-                         foreach (char c in guess.Chars)
+                         for (int cI = 0; cI < guess.Chars.Length; cI++)
                          {
+                             char c = guess.Chars[cI];
                              lock (_lock)
                              {
                                  LetterDistribution[c] += 1D / ProcessedGuesses.Length;
+
+                                 if (c is 'y' && cI is not 0 and not 4)
+                                     YAsVowelDistributionScore += 1D / ProcessedGuesses.Length;
                              }
                          }
 
@@ -176,5 +186,12 @@ public static partial class Data
             double probability = i / (double)ProcessedGuesses.Length;
             EntropyContributionByCount[i] = -probability * Math.Log2(probability);
         }
+
+        TotalVowelLetterDistributionScore = LetterDistribution['a'] +
+                                            LetterDistribution['e'] +
+                                            LetterDistribution['i'] +
+                                            LetterDistribution['o'] +
+                                            LetterDistribution['u'] +
+                                            YAsVowelDistributionScore;
     }
 }
