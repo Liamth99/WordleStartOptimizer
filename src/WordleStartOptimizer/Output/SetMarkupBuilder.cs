@@ -101,6 +101,7 @@ public static class SetMarkupBuilder
                             .AddColumn("Word",                      tb => tb.Centered())
                             .AddColumn("Color Heatmap",             tb => tb.Centered())
                             .AddColumn("Cumulative Avg Colors",     tb => tb.Centered())
+                            .AddColumn("Avg Letters\nGained",        tb => tb.Centered())
                             .AddColumn("Word Entropy",              tb => tb.Centered())
                             .AddColumn("Cumulative Entropy",        tb => tb.Centered())
                             .AddColumn("Avg Words Remaining",       tb => tb.Centered())
@@ -124,6 +125,20 @@ public static class SetMarkupBuilder
                 var yellowByte  = (byte)Math.Max(10, 255 * yellowChances[guessIndex, i] / maxColor);
                 var yellowColor = new Color(yellowByte, yellowByte, 0);
                 colorHeatMap.SetPixel(i, 1, yellowColor);
+            }
+
+            var avgLettersGained = 0D;
+            int subSetMask = 0;
+            foreach (var mask in subSet.Words.Select(x => new WordMask(x)).ToArray())
+            {
+                subSetMask |= mask.LetterMask;
+            }
+
+            foreach (string answer in Data.ValidGuesses)
+            foreach (char c in answer)
+            {
+                if ((subSetMask & 1 << (c - 'a')) > 0)
+                    avgLettersGained += 1D / Data.ValidGuesses.Length;
             }
 
             var patternCounts = subSet.GetPatternCounts();
@@ -153,6 +168,7 @@ public static class SetMarkupBuilder
                 guessIndex is 0 ?
                     new Markup($"\n[green]{Data.GreenLetters[set.WordIndexes[guessIndex]]:N2}[/]\n\n[yellow]{Data.YellowLetters[set.WordIndexes[guessIndex]]:N2}[/]") :
                     new Markup($"\n[green]{subSet.AvgGreen:N2} (+ {Data.GreenLetters[set.WordIndexes[guessIndex]]:N2})[/]\n\n[yellow]{subSet.AvgYellow:N2} (+ {Data.YellowLetters[set.WordIndexes[guessIndex]]:N2})[/]"),
+                new Markup($"\n\n{avgLettersGained:N1}"),
                 new Markup($"\n\n{Data.WordEntropies[set.WordIndexes[guessIndex]]:N3}"),
                 guessIndex is 0 ?
                     new Markup($"\n\n{subSet.Entropy:N3}") :
