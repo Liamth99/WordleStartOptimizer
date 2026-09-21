@@ -182,24 +182,7 @@ internal class Program
             }
         }
 
-        var grid = new Grid();
-
-        grid.AddColumn();
-        grid.AddColumn();
-
-        var leftColumnContent = new Grid()
-                               .AddColumn()
-                               .AddRow(SetMarkupBuilder.BuildRawDataTable(options.Set));
-
-        if (validWords.Length > 0)
-            leftColumnContent.AddRow(new Panel(string.Join(", ", validWords.Select(x => $"[cyan]{x}[/]"))).Header("Valid answers").Expand());
-        
-        grid.AddRow(
-            leftColumnContent,
-            SetMarkupBuilder.BuildSetBreakDown(options.Set,  greenCounts, yellowCounts)
-        );
-
-        AnsiConsole.Write(grid);
+        AnsiConsole.Write(SetMarkupBuilder.BuildSetBreakDown(options.Set,  greenCounts, yellowCounts));
 
         return 0;
     }

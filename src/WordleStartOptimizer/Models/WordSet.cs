@@ -134,12 +134,42 @@ public sealed class WordSet
         ExpectedRemaining = expectedRemainingSum / total;
     }
 
-    public double EntropyAtIndex(int index)
+    public Dictionary<long, int> GetPatternCounts()
+    {
+        var dic = new Dictionary<long, int>(Data.ValidGuesses.Length);
+
+        for (int answerIndex = 0; answerIndex < Data.ProcessedGuesses.Length; answerIndex++)
+        {
+            long combinedPatternCode = 0;
+            long multiplier          = 1;
+
+            foreach (int guessIndex in WordIndexes)
+            {
+                combinedPatternCode += Data.PatternMatrix[guessIndex, answerIndex] * multiplier;
+                multiplier          *= 243;
+            }
+
+            if (!dic.TryAdd(combinedPatternCode, 1))
+                dic[combinedPatternCode]++;
+        }
+
+        return dic;
+    }
+
+    public WordSet SubSet(int index)
     {
         if (index > Count)
             throw new ArgumentOutOfRangeException(nameof(index), "Must be less than the word set count.");
 
-        return new WordSet(WordIndexes.Take(index + 1).ToArray()).Entropy;
+        return new WordSet(WordIndexes.Take(index + 1).ToArray());
+    }
+
+    public WordSet SubSet(int startIndex, int count)
+    {
+        if (startIndex > Count)
+            throw new ArgumentOutOfRangeException(nameof(startIndex), "Must be less than the word set count.");
+
+        return new WordSet(WordIndexes.Skip(startIndex).Take(count).ToArray());
     }
 
     public double VowelScore { get; }
