@@ -90,11 +90,45 @@ public static class SetMarkupBuilder
         return table;
     }
 
-    public static Table BuildSetBreakDown(WordSet set, int[,] greenChances, int[,] yellowChances)
+    public static Table BuildSetBreakDown(EvaluationOptions options)
     {
-        var maxColor = greenChances
+        int[,] greenCounts  = new int[options.Set.Count, 5];
+        int[,] yellowCounts = new int[options.Set.Count, 5];
+
+        for (int i = 0; i < Data.ValidGuesses.Length; i++)
+        {
+            if(!Data.WordIsValidAnswer[i])
+                continue;
+
+            for (int j = 0; j < options.Set.WordIndexes.Length; j++)
+            {
+                short guessIndex = options.Set.WordIndexes[j];
+                var   pattern    = Data.PatternMatrix[guessIndex, i];
+
+                int[] colors =
+                [
+                    pattern % 3,
+                    pattern / 3 % 3,
+                    pattern / 9 % 3,
+                    pattern / 27 % 3,
+                    pattern / 81 % 3,
+                ];
+
+                for (int letterIndex = 0; letterIndex < 5; letterIndex++)
+                {
+                    int color = colors[letterIndex];
+
+                    if (color is 1)
+                        yellowCounts[j, letterIndex]++;
+                    else if (color is 2)
+                        greenCounts[j, letterIndex]++;
+                }
+            }
+        }
+
+        var maxColor = greenCounts
                       .OfType<int>()
-                      .Concat(yellowChances.OfType<int>())
+                      .Concat(yellowCounts.OfType<int>())
                       .Max();
 
         var evalTable = new Table()
@@ -108,21 +142,21 @@ public static class SetMarkupBuilder
 
         double prevEntropy = 0;
         double prevLettersGained = 0;
-        for (int guessIndex = 0; guessIndex < set.WordIndexes.Length; guessIndex++)
+        for (int guessIndex = 0; guessIndex < options.Set.WordIndexes.Length; guessIndex++)
         {
-            string guess = set.Words.ElementAt(guessIndex);
-            var subSet   = set.SubSet(guessIndex);
+            string guess  = options.Set.Words.ElementAt(guessIndex);
+            var    subSet = options.Set.SubSet(guessIndex);
 
             var colorHeatMap = new Canvas(5, 2);
             colorHeatMap.MaxWidth = 25;
 
             for (int i = 0; i < 5; i++)
             {
-                var greenByte  = (byte)Math.Max(10, 255 * greenChances[guessIndex, i] / maxColor);
+                var greenByte  = (byte)Math.Max(10, 255 * greenCounts[guessIndex, i] / maxColor);
                 var greenColor = new Color(0, greenByte, 0);
                 colorHeatMap.SetPixel(i, 0, greenColor);
 
-                var yellowByte  = (byte)Math.Max(10, 255 * yellowChances[guessIndex, i] / maxColor);
+                var yellowByte  = (byte)Math.Max(10, 255 * yellowCounts[guessIndex, i] / maxColor);
                 var yellowColor = new Color(yellowByte, yellowByte, 0);
                 colorHeatMap.SetPixel(i, 1, yellowColor);
             }
@@ -166,8 +200,8 @@ public static class SetMarkupBuilder
                 new Markup($"\n\n[cyan]{guess}[/]", new Style(decoration: Decoration.Bold | Decoration.Underline)),
                 colorHeatMap,
                 guessIndex is 0 ?
-                    new Markup($"\n[green]{Data.GreenLetters[set.WordIndexes[guessIndex]]:N2}[/]\n\n[yellow]{Data.YellowLetters[set.WordIndexes[guessIndex]]:N2}[/]") :
-                    new Markup($"\n[green]{subSet.AvgGreen:N2} (+ {Data.GreenLetters[set.WordIndexes[guessIndex]]:N2})[/]\n\n[yellow]{subSet.AvgYellow:N2} (+ {Data.YellowLetters[set.WordIndexes[guessIndex]]:N2})[/]"),
+                    new Markup($"\n[green]{Data.GreenLetters[options.Set.WordIndexes[guessIndex]]:N2}[/]\n\n[yellow]{Data.YellowLetters[options.Set.WordIndexes[guessIndex]]:N2}[/]") :
+                    new Markup($"\n[green]{subSet.AvgGreen:N2} (+ {Data.GreenLetters[options.Set.WordIndexes[guessIndex]]:N2})[/]\n\n[yellow]{subSet.AvgYellow:N2} (+ {Data.YellowLetters[options.Set.WordIndexes[guessIndex]]:N2})[/]"),
                 guessIndex is 0 ?
                     new Markup($"\n\n{avgLettersGained:N1}") :
                     new Markup($"\n\n{avgLettersGained:N1}\n[green](+ {avgLettersGained - prevLettersGained:N1})[/]"),

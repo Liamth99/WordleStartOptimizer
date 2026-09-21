@@ -147,42 +147,7 @@ internal class Program
 
         AnsiConsole.MarkupLine(SetMarkupBuilder.FormatWordSetMarkup(options.Set));
 
-        int[,] greenCounts  = new int[options.Set.Count, 5];
-        int[,] yellowCounts = new int[options.Set.Count, 5];
-        var    validWords   = options.Set.WordIndexes.Where(x => Data.WordIsValidAnswer[x]).Select(x => Data.ValidGuesses[x]).ToArray();
-
-        for (int i = 0; i < Data.ValidGuesses.Length; i++)
-        {
-            if(!Data.WordIsValidAnswer[i])
-                continue;
-
-            for (int j = 0; j < options.Set.WordIndexes.Length; j++)
-            {
-                short guessIndex = options.Set.WordIndexes[j];
-                var   pattern    = Data.PatternMatrix[guessIndex, i];
-
-                int[] colors =
-                    [
-                        pattern % 3,
-                        pattern / 3 % 3,
-                        pattern / 9 % 3,
-                        pattern / 27 % 3,
-                        pattern / 81 % 3,
-                    ];
-
-                for (int letterIndex = 0; letterIndex < 5; letterIndex++)
-                {
-                    int color = colors[letterIndex];
-
-                    if (color is 1)
-                        yellowCounts[j, letterIndex]++;
-                    else if (color is 2)
-                        greenCounts[j, letterIndex]++;
-                }
-            }
-        }
-
-        AnsiConsole.Write(SetMarkupBuilder.BuildSetBreakDown(options.Set,  greenCounts, yellowCounts));
+        AnsiConsole.Write(SetMarkupBuilder.BuildSetBreakDown(options));
 
         return 0;
     }
