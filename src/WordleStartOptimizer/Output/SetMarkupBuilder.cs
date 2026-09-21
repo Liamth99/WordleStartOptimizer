@@ -133,7 +133,7 @@ public static class SetMarkupBuilder
                    .Select(x => new { x.Key, Count = x.Count(), } )
                    .ToArray();
 
-            var wordsRemainingBreakdown = new BreakdownChart().UseValueFormatter(x =>  x < 0.01 ? $"{x:P3}" : $"{x:P1}");
+            var wordsRemainingBreakdown = new BreakdownChart().UseValueFormatter(x =>  x < 0.01 ? $"{x:P2}" : $"{x:P1}");
 
             foreach (var bucket in BuildBuckets(remainingAnswerChances.Max(x => x.Key)))
             {
@@ -200,7 +200,7 @@ public static class SetMarkupBuilder
                 continue;
             }
 
-            string label = prevMax + 1 == upper ? $"{upper}" : $"{prevMax + 1}-{upper}";
+            string label = prevMax + 1 == upper ? $"{upper:N0}" : $"{prevMax + 1:N0}-{upper:N0}";
             buckets.Add((label, prevMax + 1, upper, _bucketColors[i]));
 
             prevMax  =  upper;
