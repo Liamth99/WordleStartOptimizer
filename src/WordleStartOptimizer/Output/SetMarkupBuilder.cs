@@ -101,13 +101,13 @@ public static class SetMarkupBuilder
                             .AddColumn("Word",                      tb => tb.Centered())
                             .AddColumn("Color Heatmap",             tb => tb.Centered())
                             .AddColumn("Cumulative Avg Colors",     tb => tb.Centered())
-                            .AddColumn("Avg Letters\nGained",        tb => tb.Centered())
-                            .AddColumn("Word Entropy",              tb => tb.Centered())
-                            .AddColumn("Cumulative\nEntropy",        tb => tb.Centered())
-                            .AddColumn("Avg Words\nRemaining",       tb => tb.Centered())
+                            .AddColumn("Avg Letters\nGained",       tb => tb.Centered())
+                            .AddColumn("Cumulative\nEntropy",       tb => tb.Centered())
+                            .AddColumn("Avg Words\nRemaining",      tb => tb.Centered())
                             .AddColumn("Remaining Words breakdown", tb => tb.Centered());
 
         double prevEntropy = 0;
+        double prevLettersGained = 0;
         for (int guessIndex = 0; guessIndex < set.WordIndexes.Length; guessIndex++)
         {
             string guess = set.Words.ElementAt(guessIndex);
@@ -168,16 +168,19 @@ public static class SetMarkupBuilder
                 guessIndex is 0 ?
                     new Markup($"\n[green]{Data.GreenLetters[set.WordIndexes[guessIndex]]:N2}[/]\n\n[yellow]{Data.YellowLetters[set.WordIndexes[guessIndex]]:N2}[/]") :
                     new Markup($"\n[green]{subSet.AvgGreen:N2} (+ {Data.GreenLetters[set.WordIndexes[guessIndex]]:N2})[/]\n\n[yellow]{subSet.AvgYellow:N2} (+ {Data.YellowLetters[set.WordIndexes[guessIndex]]:N2})[/]"),
-                new Markup($"\n\n{avgLettersGained:N1}"),
-                new Markup($"\n\n{Data.WordEntropies[set.WordIndexes[guessIndex]]:N3}"),
+                guessIndex is 0 ?
+                    new Markup($"\n\n{avgLettersGained:N1}") :
+                    new Markup($"\n\n{avgLettersGained:N1}\n[green](+ {avgLettersGained - prevLettersGained:N1})[/]"),
                 guessIndex is 0 ?
                     new Markup($"\n\n{subSet.Entropy:N3}") :
-                    new Markup($"\n\n{subSet.Entropy:N3} [green]+{subSet.Entropy - prevEntropy:N3} (x {Math.Pow(2, subSet.Entropy - prevEntropy):N1})[/]"),
-                new Markup($"\n\n{subSet.ExpectedRemaining:N2} ({subSet.WorstCaseRemaining:N0} max)"),
+                    new Markup($"\n\n{subSet.Entropy:N3}\n[green]+{subSet.Entropy - prevEntropy:N3} (x {Math.Pow(2, subSet.Entropy - prevEntropy):N1})[/]"),
+                new Markup($"\n\n{subSet.ExpectedRemaining:N2}\n({subSet.WorstCaseRemaining:N0} max)"),
                 wordsRemainingBreakdown
             );
 
-            prevEntropy = subSet.Entropy;
+            prevEntropy       = subSet.Entropy;
+            prevLettersGained = avgLettersGained;
+
         }
 
         return evalTable;
