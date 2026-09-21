@@ -92,8 +92,10 @@ public static class SetMarkupBuilder
 
     public static Table BuildSetBreakDown(WordSet set, int[,] greenChances, int[,] yellowChances)
     {
-        double maxGreen = greenChances.OfType<int>().Max();
-        double maxYellow = yellowChances.OfType<int>().Max();
+        var maxColor = greenChances
+                      .OfType<int>()
+                      .Concat(yellowChances.OfType<int>())
+                      .Max();
 
         var evalTable = new Table()
                             .AddColumn("Word",                      tb => tb.Centered())
@@ -115,12 +117,12 @@ public static class SetMarkupBuilder
 
             for (int i = 0; i < 5; i++)
             {
-                var greenMultiple = greenChances[guessIndex, i] / maxGreen;
-                var greenColor    = new Color(0, (byte)(255 * greenMultiple), 0);
+                var greenByte  = (byte)Math.Max(10, 255 * greenChances[guessIndex, i] / maxColor);
+                var greenColor = new Color(0, greenByte, 0);
                 colorHeatMap.SetPixel(i, 0, greenColor);
 
-                var yellowMultiple = yellowChances[guessIndex, i] / maxYellow;
-                var yellowColor    = new Color((byte)(255 * yellowMultiple), (byte)(255 * yellowMultiple), 0);
+                var yellowByte  = (byte)Math.Max(10, 255 * yellowChances[guessIndex, i] / maxColor);
+                var yellowColor = new Color(yellowByte, yellowByte, 0);
                 colorHeatMap.SetPixel(i, 1, yellowColor);
             }
 
