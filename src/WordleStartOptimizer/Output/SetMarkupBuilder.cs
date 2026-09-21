@@ -103,8 +103,8 @@ public static class SetMarkupBuilder
                             .AddColumn("Cumulative Avg Colors",     tb => tb.Centered())
                             .AddColumn("Avg Letters\nGained",        tb => tb.Centered())
                             .AddColumn("Word Entropy",              tb => tb.Centered())
-                            .AddColumn("Cumulative Entropy",        tb => tb.Centered())
-                            .AddColumn("Avg Words Remaining",       tb => tb.Centered())
+                            .AddColumn("Cumulative\nEntropy",        tb => tb.Centered())
+                            .AddColumn("Avg Words\nRemaining",       tb => tb.Centered())
                             .AddColumn("Remaining Words breakdown", tb => tb.Centered());
 
         double prevEntropy = 0;
