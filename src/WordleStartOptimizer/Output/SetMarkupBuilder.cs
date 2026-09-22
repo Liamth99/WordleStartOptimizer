@@ -90,54 +90,177 @@ public static class SetMarkupBuilder
         return table;
     }
 
-    public static Table BuildSetBreakDown(WordSet set, int[,] greenChances, int[,] yellowChances)
+    public static Table BuildSetBreakDown(EvaluationOptions options)
     {
-        double maxGreen = greenChances.OfType<int>().Max();
-        double maxYellow = yellowChances.OfType<int>().Max();
+        int[,] greenCounts  = new int[options.Set.Count, 5];
+        int[,] yellowCounts = new int[options.Set.Count, 5];
 
-        var breakDownTable = new Table()
-                            .AddColumn("Word",               tb => tb.Centered())
-                            .AddColumn("Color Heatmap",      tb => tb.Centered())
-                            .AddColumn("Avg Colors",         tb => tb.Centered())
-                            .AddColumn("Word Entropy",       tb => tb.Centered())
-                            .AddColumn("Cumulative Entropy", tb => tb.Centered());
+        for (int i = 0; i < Data.ValidGuesses.Length; i++)
+        {
+            if(!Data.WordIsValidAnswer[i])
+                continue;
+
+            for (int j = 0; j < options.Set.WordIndexes.Length; j++)
+            {
+                short guessIndex = options.Set.WordIndexes[j];
+                var   pattern    = Data.PatternMatrix[guessIndex, i];
+
+                int[] colors =
+                [
+                    pattern % 3,
+                    pattern / 3 % 3,
+                    pattern / 9 % 3,
+                    pattern / 27 % 3,
+                    pattern / 81 % 3,
+                ];
+
+                for (int letterIndex = 0; letterIndex < 5; letterIndex++)
+                {
+                    int color = colors[letterIndex];
+
+                    if (color is 1)
+                        yellowCounts[j, letterIndex]++;
+                    else if (color is 2)
+                        greenCounts[j, letterIndex]++;
+                }
+            }
+        }
+
+        var maxColor = greenCounts
+                      .OfType<int>()
+                      .Concat(yellowCounts.OfType<int>())
+                      .Max();
+
+        var evalTable = new Table()
+                            .AddColumn("Word",                      tb => tb.Centered())
+                            .AddColumn("Color Heatmap",             tb => tb.Centered())
+                            .AddColumn("Cumulative Avg Colors",     tb => tb.Centered())
+                            .AddColumn("Avg Letters\nGained",       tb => tb.Centered())
+                            .AddColumn("Cumulative\nEntropy",       tb => tb.Centered())
+                            .AddColumn("Avg Words\nRemaining",      tb => tb.Centered())
+                            .AddColumn("Remaining Words breakdown", tb => tb.Centered());
 
         double prevEntropy = 0;
-        for (int guessIndex = 0; guessIndex < set.WordIndexes.Length; guessIndex++)
+        double prevLettersGained = 0;
+        for (int guessIndex = 0; guessIndex < options.Set.WordIndexes.Length; guessIndex++)
         {
-            string guess   = set.Words.ElementAt(guessIndex);
-            var    heatMap = new Canvas(5, 2);
-            heatMap.MaxWidth = 25;
-            var greenTotalCount = 0;
-            var yellowTotalCount = 0;
+            string guess  = options.Set.Words.ElementAt(guessIndex);
+            var    subSet = options.Set.SubSet(guessIndex);
+
+            var colorHeatMap = new Canvas(5, 2);
+            colorHeatMap.MaxWidth = 25;
 
             for (int i = 0; i < 5; i++)
             {
-                var greenMultiple = greenChances[guessIndex, i] / maxGreen;
-                var greenColor    = new Color(0, (byte)(255 * greenMultiple), 0);
-                greenTotalCount   += greenChances[guessIndex, i];
-                heatMap.SetPixel(i, 0, greenColor);
+                var greenByte  = (byte)Math.Max(10, 255 * greenCounts[guessIndex, i] / maxColor);
+                var greenColor = new Color(0, greenByte, 0);
+                colorHeatMap.SetPixel(i, 0, greenColor);
 
-                var yellowMultiple = yellowChances[guessIndex, i] / maxYellow;
-                var yellowColor    = new Color((byte)(255 * yellowMultiple), (byte)(255 * yellowMultiple), 0);
-                yellowTotalCount    += yellowChances[guessIndex, i];
-                heatMap.SetPixel(i, 1, yellowColor);
+                var yellowByte  = (byte)Math.Max(10, 255 * yellowCounts[guessIndex, i] / maxColor);
+                var yellowColor = new Color(yellowByte, yellowByte, 0);
+                colorHeatMap.SetPixel(i, 1, yellowColor);
             }
 
-            var currentEntropy = set.EntropyAtIndex(guessIndex);
+            var avgLettersGained = 0D;
+            int subSetMask = 0;
+            foreach (var mask in subSet.Words.Select(x => new WordMask(x)).ToArray())
+            {
+                subSetMask |= mask.LetterMask;
+            }
 
-            breakDownTable.AddRow(
+            foreach (string answer in Data.ValidGuesses)
+            foreach (char c in answer)
+            {
+                if ((subSetMask & 1 << (c - 'a')) > 0)
+                    avgLettersGained += 1D / Data.ValidGuesses.Length;
+            }
+
+            var patternCounts = subSet.GetPatternCounts();
+            var remainingAnswerChances = patternCounts
+                   .Select(x => x.Value)
+                   .GroupBy(x => x)
+                   .Select(x => new { x.Key, Count = x.Count(), } )
+                   .ToArray();
+
+            var wordsRemainingBreakdown = new BreakdownChart().UseValueFormatter(x =>  x < 0.01 ? $"{x:P2}" : $"{x:P1}");
+
+            foreach (var bucket in BuildBuckets(remainingAnswerChances.Max(x => x.Key)))
+            {
+                var answerGroupsInBucket = remainingAnswerChances.Where(x => x.Key <= bucket.max && x.Key >= bucket.min).ToArray();
+
+                if(answerGroupsInBucket.Length is 0)
+                    continue;
+
+                var percentage = answerGroupsInBucket.Sum(x => x.Count * x.Key) / (double)Data.ValidGuesses.Length;
+
+                wordsRemainingBreakdown.AddItem(bucket.label, percentage, bucket.color);
+            }
+
+            evalTable.AddRow(
                 new Markup($"\n\n[cyan]{guess}[/]", new Style(decoration: Decoration.Bold | Decoration.Underline)),
-                heatMap,
-                new Markup($"\n[green]{greenTotalCount / (double)Data.ValidAnswers.Length:N2}[/]\n\n[yellow]{yellowTotalCount / (double)Data.ValidAnswers.Length:N2}[/]"),
-                new Markup($"\n\n{Data.WordEntropies[set.WordIndexes[guessIndex]]:N3}"),
-                guessIndex is 0 ? new Markup($"\n\n{currentEntropy:N3}") : new Markup($"\n\n{currentEntropy:N3} [green]+{currentEntropy - prevEntropy:N3} (x {Math.Pow(2, currentEntropy - prevEntropy):N1})[/]")
-                );
+                colorHeatMap,
+                guessIndex is 0 ?
+                    new Markup($"\n[green]{Data.GreenLetters[options.Set.WordIndexes[guessIndex]]:N2}[/]\n\n[yellow]{Data.YellowLetters[options.Set.WordIndexes[guessIndex]]:N2}[/]") :
+                    new Markup($"\n[green]{subSet.AvgGreen:N2} (+ {Data.GreenLetters[options.Set.WordIndexes[guessIndex]]:N2})[/]\n\n[yellow]{subSet.AvgYellow:N2} (+ {Data.YellowLetters[options.Set.WordIndexes[guessIndex]]:N2})[/]"),
+                guessIndex is 0 ?
+                    new Markup($"\n\n{avgLettersGained:N1}") :
+                    new Markup($"\n\n{avgLettersGained:N1}\n[green](+ {avgLettersGained - prevLettersGained:N1})[/]"),
+                guessIndex is 0 ?
+                    new Markup($"\n\n{subSet.Entropy:N3}") :
+                    new Markup($"\n\n{subSet.Entropy:N3}\n[green]+{subSet.Entropy - prevEntropy:N3} (x {Math.Pow(2, subSet.Entropy - prevEntropy):N1})[/]"),
+                new Markup($"\n\n{subSet.ExpectedRemaining:N2}\n({subSet.WorstCaseRemaining:N0} max)"),
+                wordsRemainingBreakdown
+            );
 
-            prevEntropy = currentEntropy;
+            prevEntropy       = subSet.Entropy;
+            prevLettersGained = avgLettersGained;
+
         }
 
-        return breakDownTable;
+        return evalTable;
+    }
+
+    private static Color[] _bucketColors =
+        [
+            Color.Green,
+            Color.Lime,
+            Color.Yellow,
+            Color.Orange1,
+            Color.OrangeRed1,
+            Color.DarkRed,
+        ];
+
+    private static (string label, int min, int max, Color color)[] BuildBuckets(int maxRemaining)
+    {
+        var buckets = new List<(string Label, int Min, int Max, Color color)> { ("1", 1, 1, _bucketColors[0]), };
+
+        if (maxRemaining is 1)
+            return buckets.ToArray();
+
+        var remainingBucketCount = 6 - 1;
+        var ratio = Math.Pow(maxRemaining / 2D, 1D / remainingBucketCount);
+
+        var boundary = 2D;
+        var prevMax  = 1;
+
+        for (int i = 1; i < 6; i++)
+        {
+            int upper = i is 5 ? maxRemaining : (int)Math.Round(boundary);
+
+            if (upper <= prevMax)
+            {
+                boundary *= ratio;
+                continue;
+            }
+
+            string label = prevMax + 1 == upper ? $"{upper:N0}" : $"{prevMax + 1:N0}-{upper:N0}";
+            buckets.Add((label, prevMax + 1, upper, _bucketColors[i]));
+
+            prevMax  =  upper;
+            boundary *= ratio;
+        }
+
+        return buckets.ToArray();
     }
 
     private static string ColorNormalizedScore(double s)
