@@ -26,7 +26,7 @@ internal class Program
 
     private static async Task<int> RunGenSetAsync(SetGenerationOptions options)
     {
-        await VersionChecker.CheckVersionAsync();
+        VersionChecker.CheckVersionAsync();
 
         if (options.RequiredWordsIndexes?.Length >= options.SetSize)
         {
@@ -143,7 +143,7 @@ internal class Program
 
     private static async Task<int> RunEvaluateSetAsync(EvaluationOptions options)
     {
-        await VersionChecker.CheckVersionAsync();
+        VersionChecker.CheckVersionAsync();
 
         AnsiConsole.MarkupLine(SetMarkupBuilder.FormatWordSetMarkup(options.Set));
 
@@ -154,7 +154,7 @@ internal class Program
 
     private static async Task<int> RunSolveAsync(SolveOptions solveOptions)
     {
-        await VersionChecker.CheckVersionAsync();
+        VersionChecker.CheckVersionAsync();
 
         var validIndexes = solveOptions.GetValidGuesses();
 
