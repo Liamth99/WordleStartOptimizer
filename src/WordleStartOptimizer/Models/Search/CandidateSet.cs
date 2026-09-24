@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace WordleStartOptimizer.Models;
+namespace WordleStartOptimizer.Models.Search;
 
 [DebuggerDisplay("{DisplayString}")]
 public readonly struct CandidateSet
