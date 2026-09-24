@@ -162,7 +162,7 @@ internal class Program
         if (validIndexes.Count is 0)
             AnsiConsole.MarkupLine("[red]No valid answers.[/]");
         else if (validIndexes.Count is 1)
-            AnsiConsole.MarkupLine($"Answer is [cyan]{validIndexes.First()}[/]");
+            AnsiConsole.MarkupLine($"Answer is [cyan]{Data.ValidGuesses[validIndexes.First()]}[/]");
 
         List <(short wordIndex, int worstRemaining, double entropy)> results = [];
 
