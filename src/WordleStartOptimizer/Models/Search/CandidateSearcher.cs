@@ -78,12 +78,10 @@ public static class CandidateSearcher
             if(!MatchesConstraints(usedMask, chosen, options))
                 return;
 
-            double preScore = 0;
             var    words    = new short[options.SetSize];
 
             for (int i = 0; i < chosen.Length; i++)
             {
-                preScore += Data.WordEntropies[chosen[i]];
                 words[i] =  chosen[i];
             }
 
