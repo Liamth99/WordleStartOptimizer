@@ -6,6 +6,7 @@ using Spectre.Console;
 using WordleStartOptimizer.Models.Options;
 using WordleStartOptimizer.Models.Search;
 using WordleStartOptimizer.Output;
+using WordleStartOptimizer.Utils;
 
 namespace WordleStartOptimizer;
 
@@ -167,28 +168,11 @@ internal class Program
 
         foreach (short index in validIndexes)
         {
-            Dictionary<byte, int> patternCounts = [];
-            foreach (short validIndex in validIndexes)
-            {
-                var pattern = Data.PatternMatrix[index, validIndex];
+            var stats = index
+                       .GeneratePatternCounts(validIndexes)
+                       .CalcEntropyWithWorstRemaining(validIndexes.Count);
 
-                if (!patternCounts.TryAdd(pattern, 1))
-                    patternCounts[pattern]++;
-            }
-
-            double entropy        = 0;
-            int    worstRemaining = 0;
-
-            foreach (int patternCount in patternCounts.Values)
-            {
-                var probability        = patternCount / (double)validIndexes.Count;
-                entropy -= probability * Math.Log2(probability);
-
-                if (worstRemaining < patternCount)
-                    worstRemaining = patternCount;
-            }
-
-            results.Add(new (index, worstRemaining, entropy));
+            results.Add(new (index, stats.worstRemaining, stats.entropy));
         }
 
         var table = new Table().AddColumns("Word", "Worst Case Remaining", "Entropy");

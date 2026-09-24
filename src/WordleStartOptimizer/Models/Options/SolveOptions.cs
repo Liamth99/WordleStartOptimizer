@@ -1,5 +1,6 @@
 using CommandLine;
 using CommandLine.Text;
+using WordleStartOptimizer.Utils;
 
 namespace WordleStartOptimizer.Models.Options;
 
@@ -29,23 +30,7 @@ public class SolveOptions
                 if (guessIndex is -1)
                     throw new ArgumentException($"{guess} is not a valid wordle guess.");
 
-                var patternString = resultsString[1];
-
-                if (patternString.Length is not 5 || patternString.Any(x => x is not '_' and not 'g' and not 'y'))
-                    throw new ArgumentException("Expected format for a Guess Results pattern is `_g_y_` where _ is grey");
-
-                byte pattern = 0;
-
-                for (int j = 0; j < 5; j++)
-                {
-                    char c = patternString[j];
-                    if (c is 'y')
-                        pattern += (byte)Math.Pow(3, j);
-                    else if (c is 'g')
-                        pattern += (byte)(2 * Math.Pow(3, j));
-                }
-
-                Results[i] = new GuessResult(guessIndex, pattern);
+                Results[i] = new GuessResult(guessIndex, resultsString[1].EncodePatternString());
             }
         }
     } = default!;
