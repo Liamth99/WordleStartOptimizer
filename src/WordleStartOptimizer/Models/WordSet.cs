@@ -159,7 +159,7 @@ public sealed class WordSet
     public WordSet SubSet(int index)
     {
         if (index > Count)
-            throw new ArgumentOutOfRangeException(nameof(index), "Must be less than the word set count.");
+            throw new ArgumentOutOfRangeException(nameof(index), "Must be less than or equal to the word set count.");
 
         return new WordSet(WordIndexes.Take(index + 1).ToArray());
     }
@@ -167,7 +167,7 @@ public sealed class WordSet
     public WordSet SubSet(int startIndex, int count)
     {
         if (startIndex > Count)
-            throw new ArgumentOutOfRangeException(nameof(startIndex), "Must be less than the word set count.");
+            throw new ArgumentOutOfRangeException(nameof(startIndex), "Must be less than or equal to the word set count.");
 
         return new WordSet(WordIndexes.Skip(startIndex).Take(count).ToArray());
     }
