@@ -13,12 +13,19 @@ public static class StringExtensions
 
         for (int i = 0; i < 5; i++)
         {
-            code += pattern[i] switch
-                {
-                    'y' or 'Y' => _powersOf3[i],
-                    'g' or 'G' => (byte)(2 * _powersOf3[i]),
-                    _          => throw new ArgumentException($"{pattern} is not a valid pattern. Expected format for a Guess Results pattern is `_g_y_` where _ is grey.", nameof(pattern))
-                };
+            switch (pattern[i])
+            {
+                case 'y' or 'Y':
+                    code += _powersOf3[i];
+                    break;
+                case 'g' or 'G':
+                    code += (byte)(2 * _powersOf3[i]);
+                    break;
+                case '_':
+                    break;
+                default:
+                    throw new ArgumentException($"{pattern} is not a valid pattern. Expected format for a Guess Results pattern is `_g_y_` where _ is grey.", nameof(pattern));
+            }
         }
 
         return code;
