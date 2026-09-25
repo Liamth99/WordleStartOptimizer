@@ -17,6 +17,9 @@ public sealed class WordSet
 
     public WordSet(short[] wordIndexes)
     {
+        WordIndexes = wordIndexes.OrderByDescending(x => Data.WordLetterDistributionScore[x]).ToArray();
+        Count = WordIndexes.Length;
+
         if (_patternCountCache is null)
             _patternCountCache = new Dictionary<long, int>(Data.ValidGuesses.Length);
         else
@@ -27,7 +30,7 @@ public sealed class WordSet
             long combinedPatternCode = 0;
             long multiplier          = 1;
 
-            foreach (short guessIndex in wordIndexes)
+            foreach (short guessIndex in WordIndexes)
             {
                 combinedPatternCode += Data.PatternMatrix[guessIndex, answerIndex] * multiplier;
                 multiplier          *= 243;
@@ -36,78 +39,6 @@ public sealed class WordSet
             if (!_patternCountCache.TryAdd(combinedPatternCode, 1))
                 _patternCountCache[combinedPatternCode]++;
         }
-
-        AvgGreen     = 0;
-        AvgYellow    = 0;
-        ValidAnswers = 0;
-
-        for (short i = 0; i < wordIndexes.Length; i++)
-        {
-            var index = wordIndexes[i];
-
-            AvgGreen  += Data.GreenLetters[index];
-            AvgYellow += Data.YellowLetters[index];
-
-            if (Data.WordIsValidAnswer[index])
-                ValidAnswers++;
-        }
-
-        WordIndexes = wordIndexes.OrderByDescending(x => Data.WordLetterDistributionScore[x]).ToArray();
-        var wordArr = Words.ToArray();
-        Count       = wordIndexes.Length;
-
-        VowelScore = 0D;
-
-        var aPresent = false;
-        var ePresent = false;
-        var iPresent = false;
-        var oPresent = false;
-        var uPresent = false;
-        var yPresent = false;
-
-        for (int i = 0; i < Count; i++)
-        for (int j = 0; j < 5; j++)
-        {
-            var c = wordArr[i][j];
-
-            switch (c)
-            {
-                case 'a':
-                    aPresent = true;
-                    break;
-                case 'e':
-                    ePresent = true;
-                    break;
-                case 'i':
-                    iPresent = true;
-                    break;
-                case 'o':
-                    oPresent = true;
-                    break;
-                case 'u':
-                    uPresent = true;
-                    break;
-                case 'y':
-                    if(j is not 0 and not 4)
-                        yPresent = true;
-                    break;
-            }
-        }
-
-        if(aPresent)
-            VowelScore += Data.LetterDistribution['a'];
-        if(ePresent)
-            VowelScore += Data.LetterDistribution['e'];
-        if(iPresent)
-            VowelScore += Data.LetterDistribution['i'];
-        if(oPresent)
-            VowelScore += Data.LetterDistribution['o'];
-        if(uPresent)
-            VowelScore += Data.LetterDistribution['u'];
-        if(yPresent)
-            VowelScore += Data.YAsVowelDistributionScore;
-
-        VowelScore /= Data.TotalVowelLetterDistributionScore;
 
         Entropy            = 0D;
         WorstCaseRemaining = 0;
@@ -126,6 +57,72 @@ public sealed class WordSet
         }
 
         ExpectedRemaining = expectedRemainingSum / total;
+
+        AvgGreen     = 0D;
+        AvgYellow    = 0D;
+        ValidAnswers = 0;
+        VowelScore   = 0D;
+
+        var aPresent = false;
+        var ePresent = false;
+        var iPresent = false;
+        var oPresent = false;
+        var uPresent = false;
+        var yPresent = false;
+
+        for (int i = 0; i < Count; i++)
+        {
+            var index = WordIndexes[i];
+
+            AvgGreen  += Data.GreenLetters[index];
+            AvgYellow += Data.YellowLetters[index];
+
+            if (Data.WordIsValidAnswer[index])
+                ValidAnswers++;
+
+            for (int j = 0; j < 5; j++)
+            {
+                var c = Data.ValidGuesses[index][j];
+
+                switch (c)
+                {
+                    case 'a':
+                        aPresent = true;
+                        break;
+                    case 'e':
+                        ePresent = true;
+                        break;
+                    case 'i':
+                        iPresent = true;
+                        break;
+                    case 'o':
+                        oPresent = true;
+                        break;
+                    case 'u':
+                        uPresent = true;
+                        break;
+                    case 'y':
+                        if (j is not 0 and not 4)
+                            yPresent = true;
+                        break;
+                }
+            }
+        }
+
+        if(aPresent)
+            VowelScore += Data.LetterDistribution['a'];
+        if(ePresent)
+            VowelScore += Data.LetterDistribution['e'];
+        if(iPresent)
+            VowelScore += Data.LetterDistribution['i'];
+        if(oPresent)
+            VowelScore += Data.LetterDistribution['o'];
+        if(uPresent)
+            VowelScore += Data.LetterDistribution['u'];
+        if(yPresent)
+            VowelScore += Data.YAsVowelDistributionScore;
+
+        VowelScore /= Data.TotalVowelLetterDistributionScore;
     }
 
     public Dictionary<long, int> GetPatternCounts()
