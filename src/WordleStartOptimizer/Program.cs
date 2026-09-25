@@ -6,6 +6,7 @@ using Spectre.Console;
 using WordleStartOptimizer.Models.Options;
 using WordleStartOptimizer.Models.Search;
 using WordleStartOptimizer.Output;
+using WordleStartOptimizer.Utils;
 
 namespace WordleStartOptimizer;
 
@@ -26,7 +27,7 @@ internal class Program
 
     private static async Task<int> RunGenSetAsync(SetGenerationOptions options)
     {
-        await VersionChecker.CheckVersionAsync();
+        VersionChecker.CheckVersionAsync();
 
         if (options.RequiredWordsIndexes?.Length >= options.SetSize)
         {
@@ -143,7 +144,7 @@ internal class Program
 
     private static async Task<int> RunEvaluateSetAsync(EvaluationOptions options)
     {
-        await VersionChecker.CheckVersionAsync();
+        VersionChecker.CheckVersionAsync();
 
         AnsiConsole.MarkupLine(SetMarkupBuilder.FormatWordSetMarkup(options.Set));
 
@@ -154,41 +155,24 @@ internal class Program
 
     private static async Task<int> RunSolveAsync(SolveOptions solveOptions)
     {
-        await VersionChecker.CheckVersionAsync();
+        VersionChecker.CheckVersionAsync();
 
         var validIndexes = solveOptions.GetValidGuesses();
 
         if (validIndexes.Count is 0)
             AnsiConsole.MarkupLine("[red]No valid answers.[/]");
         else if (validIndexes.Count is 1)
-            AnsiConsole.MarkupLine($"Answer is [cyan]{validIndexes.First()}[/]");
+            AnsiConsole.MarkupLine($"Answer is [cyan]{Data.ValidGuesses[validIndexes.First()]}[/]");
 
         List <(short wordIndex, int worstRemaining, double entropy)> results = [];
 
         foreach (short index in validIndexes)
         {
-            Dictionary<byte, int> patternCounts = [];
-            foreach (short validIndex in validIndexes)
-            {
-                var pattern = Data.PatternMatrix[index, validIndex];
+            var stats = index
+                       .GeneratePatternCounts(validIndexes)
+                       .CalcEntropyWithWorstRemaining(validIndexes.Count);
 
-                if (!patternCounts.TryAdd(pattern, 1))
-                    patternCounts[pattern]++;
-            }
-
-            double entropy        = 0;
-            int    worstRemaining = 0;
-
-            foreach (int patternCount in patternCounts.Values)
-            {
-                var probability        = patternCount / (double)validIndexes.Count;
-                entropy -= probability * Math.Log2(probability);
-
-                if (worstRemaining < patternCount)
-                    worstRemaining = patternCount;
-            }
-
-            results.Add(new (index, worstRemaining, entropy));
+            results.Add(new (index, stats.worstRemaining, stats.entropy));
         }
 
         var table = new Table().AddColumns("Word", "Worst Case Remaining", "Entropy");

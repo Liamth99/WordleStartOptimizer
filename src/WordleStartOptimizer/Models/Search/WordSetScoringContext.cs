@@ -9,7 +9,6 @@ public sealed class WordSetScoringContext
     public MetricRange WorstCaseRemaining { get; }
     public MetricRange Green { get; }
     public MetricRange Yellow { get; }
-    public MetricRange LetterDistributionOrder { get; }
 
     public WordSetScoringContext(IReadOnlyCollection<WordSet> sets)
     {
@@ -18,7 +17,6 @@ public sealed class WordSetScoringContext
         WorstCaseRemaining      = MetricRange.Of(sets, x => x.WorstCaseRemaining);
         Green                   = MetricRange.Of(sets, x => x.AvgGreen);
         Yellow                  = MetricRange.Of(sets, x => x.AvgYellow);
-        LetterDistributionOrder = MetricRange.Of(sets, x => x.LetterDistributionOrder);
     }
 
     public double NormalizedEntropy(WordSet set)
@@ -39,17 +37,13 @@ public sealed class WordSetScoringContext
     public double NormalizedVowelCount(WordSet set)
         => set.VowelScore;
 
-    public double NormalizedLetterDistributionOrder(WordSet set)
-        => LetterDistributionOrder.Normalize(set.LetterDistributionOrder);
-
     public double Score(WordSet set, SetGenerationOptions options) =>
         options.EntropyModifier                 * NormalizedEntropy(set) +
         options.ExpectedRemainingModifier       * NormalizedExpectedRemaining(set) +
         options.WorstCaseRemainingModifier      * NormalizedWorstCaseRemaining(set) +
         options.GreenLetterModifier             * NormalizedGreen(set) +
         options.YellowLetterModifier            * NormalizedYellow(set) +
-        options.VowelCountModifier              * NormalizedVowelCount(set) +
-        options.LetterDistributionOrderModifier * NormalizedLetterDistributionOrder(set);
+        options.VowelCountModifier              * NormalizedVowelCount(set);
 
     public readonly struct MetricRange
     {
