@@ -7,7 +7,7 @@ public sealed class WordSet
 {
     private string DisplayString => string.Join(", ", Words);
 
-    public short[]  WordIndexes { get; set; }
+    public short[] WordIndexes { get; init; }
     public IEnumerable<string> Words => WordIndexes.Select(x => Data.ValidGuesses[x]);
 
     public int Count { get; init; }
@@ -22,12 +22,12 @@ public sealed class WordSet
         else
             _patternCountCache.Clear();
 
-        for (int answerIndex = 0; answerIndex < Data.ProcessedGuesses.Length; answerIndex++)
+        for (short answerIndex = 0; answerIndex < Data.ProcessedGuesses.Length; answerIndex++)
         {
             long combinedPatternCode = 0;
             long multiplier          = 1;
 
-            foreach (int guessIndex in wordIndexes)
+            foreach (short guessIndex in wordIndexes)
             {
                 combinedPatternCode += Data.PatternMatrix[guessIndex, answerIndex] * multiplier;
                 multiplier          *= 243;
@@ -41,7 +41,7 @@ public sealed class WordSet
         AvgYellow    = 0;
         ValidAnswers = 0;
 
-        for (int i = 0; i < wordIndexes.Length; i++)
+        for (short i = 0; i < wordIndexes.Length; i++)
         {
             var index = wordIndexes[i];
 
@@ -55,12 +55,6 @@ public sealed class WordSet
         WordIndexes = wordIndexes.OrderByDescending(x => Data.WordLetterDistributionScore[x]).ToArray();
         var wordArr = Words.ToArray();
         Count       = wordIndexes.Length;
-
-        LetterDistributionOrder = wordIndexes
-                                 .Select(x => Data.WordLetterDistributionScore[x])
-                                 .Order()
-                                 .Select((x, i) => x * (1 + .2 * i))
-                                 .Sum();
 
         VowelScore = 0D;
 
@@ -138,12 +132,12 @@ public sealed class WordSet
     {
         var dic = new Dictionary<long, int>(Data.ValidGuesses.Length);
 
-        for (int answerIndex = 0; answerIndex < Data.ProcessedGuesses.Length; answerIndex++)
+        for (short answerIndex = 0; answerIndex < Data.ProcessedGuesses.Length; answerIndex++)
         {
             long combinedPatternCode = 0;
             long multiplier          = 1;
 
-            foreach (int guessIndex in WordIndexes)
+            foreach (short guessIndex in WordIndexes)
             {
                 combinedPatternCode += Data.PatternMatrix[guessIndex, answerIndex] * multiplier;
                 multiplier          *= 243;
@@ -178,6 +172,5 @@ public sealed class WordSet
     public double AvgYellow { get; }
     public double ExpectedRemaining { get; }
     public double WorstCaseRemaining { get; }
-    public double LetterDistributionOrder { get; }
     public int ValidAnswers { get; }
 }

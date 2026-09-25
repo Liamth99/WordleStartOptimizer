@@ -55,9 +55,6 @@ public class SetGenerationOptions
     [Option('v', "vowelCount", Default = 0.3, HelpText = "Weight given to vowel coverage across the starting word set. Higher values favor words containing more vowels.")]
     public double VowelCountModifier { get; init; }
 
-    [Option('d', "letterDistribution", Default = 0.1, HelpText = "Weight given to the distribution of characters in each word, and how soon they appear in the set.")]
-    public double LetterDistributionOrderModifier { get; init; }
-
     [Option("requiredWords", Default = null, HelpText = "List of required words to include in the generated starting word set.")]
     public string? RequiredWords
     {

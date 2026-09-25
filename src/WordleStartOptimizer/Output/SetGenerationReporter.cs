@@ -47,7 +47,6 @@ public static class SetGenerationReporter
         PrintRange("Worst Case Remaining", context.WorstCaseRemaining, "N0", invert: true);
         PrintRange("Avg Greens", context.Green, "N2");
         PrintRange("Avg Yellows", context.Yellow, "N2");
-        PrintRange("Letter Distribution Order", context.LetterDistributionOrder, "N1");
         AnsiConsole.WriteLine();
     }
 

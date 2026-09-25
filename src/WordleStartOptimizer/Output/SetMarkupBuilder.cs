@@ -20,7 +20,6 @@ public static class SetMarkupBuilder
         table.AddRow("Avg Green Letters",         $"{set.AvgGreen:N2}");
         table.AddRow("Avg Yellow Letters",        $"{set.AvgYellow:N2}");
         table.AddRow("Vowel Score",               $"{set.VowelScore:N2}");
-        table.AddRow("Letter Distribution Score", $"{set.LetterDistributionOrder:N3}");
         table.AddRow("Valid Answers",             $"{set.ValidAnswers:N0}");
 
         return table;
@@ -72,13 +71,6 @@ public static class SetMarkupBuilder
             ColorNormalizedScore(context.NormalizedVowelCount(set)),
             $"{options.VowelCountModifier:N2}",
             $"{context.NormalizedVowelCount(set)* options.VowelCountModifier:N3}");
-
-        table.AddRow(
-            "Letter Distribution Score",
-            $"{set.LetterDistributionOrder:N3}",
-            ColorNormalizedScore(context.NormalizedLetterDistributionOrder(set)),
-            $"{options.LetterDistributionOrderModifier:N2}",
-            $"{context.NormalizedLetterDistributionOrder(set) * options.LetterDistributionOrderModifier:N3}");
 
         table.AddRow(
             "Valid Answers",
