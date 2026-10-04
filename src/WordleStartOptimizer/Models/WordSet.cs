@@ -15,6 +15,9 @@ public sealed class WordSet
     [ThreadStatic]
     private static PatternCounter<ulong>? _patternCountCache;
 
+    [ThreadStatic]
+    private static ulong[]? _codes;
+
     public WordSet(short[] wordIndexes)
     {
         WordIndexes = new short[wordIndexes.Length];
@@ -25,20 +28,21 @@ public sealed class WordSet
             _patternCountCache = new (Data.ValidGuesses.Length);
         else
             _patternCountCache.Clear();
+        _codes ??= new ulong[Data.ValidGuesses.Length];
 
-        for (short answerIndex = 0; answerIndex < Data.ProcessedGuesses.Length; answerIndex++)
+        var firstIndexRow = Data.GetPatternRow(wordIndexes[0]);
+        for (int i = 0; i < Data.ValidGuesses.Length; i++)
+            _codes[i] = firstIndexRow[i];
+
+        for (int answerIndex = 1; answerIndex < Count; answerIndex++)
         {
-            ulong combinedPatternCode = 0;
-            ulong multiplier          = 1;
-
-            foreach (short guessIndex in WordIndexes)
-            {
-                combinedPatternCode += Data.PatternMatrix[guessIndex, answerIndex] * multiplier;
-                multiplier          *= 243;
-            }
-
-            _patternCountCache.Add(combinedPatternCode);
+            var row = Data.GetPatternRow(wordIndexes[answerIndex]);
+            for (int i = 0; i < Data.ValidGuesses.Length; i++)
+                _codes[i] = _codes[i] * 243 + row[i];
         }
+
+        for (int i = 0; i < Data.ValidGuesses.Length; i++)
+            _patternCountCache.Add(_codes[i]);
 
         var stats = _patternCountCache.CalculateStatistics(Data.ProcessedGuesses.Length);
 
