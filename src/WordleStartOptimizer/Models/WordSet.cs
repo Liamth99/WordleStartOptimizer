@@ -17,7 +17,8 @@ public sealed class WordSet
 
     public WordSet(short[] wordIndexes)
     {
-        WordIndexes = wordIndexes.OrderByDescending(x => Data.WordLetterDistributionScore[x]).ToArray();
+        WordIndexes = new short[wordIndexes.Length];
+        wordIndexes.CopyTo(WordIndexes);
         Count = WordIndexes.Length;
 
         if (_patternCountCache is null)
