@@ -18,6 +18,10 @@ public sealed class WordSet
     [ThreadStatic]
     private static ulong[]? _codes;
 
+    private const uint FirstYVowelMask  = 25U << 5;
+    private const uint SecondYVowelMask = 25U << 10;
+    private const uint ThirdYVowelMask  = 25U << 15;
+
     public WordSet(short[] wordIndexes)
     {
         WordIndexes = new short[wordIndexes.Length];
@@ -30,15 +34,40 @@ public sealed class WordSet
             _patternCountCache.Clear();
         _codes ??= new ulong[Data.ValidGuesses.Length];
 
-        var firstIndexRow = Data.GetPatternRow(wordIndexes[0]);
-        for (int i = 0; i < Data.ValidGuesses.Length; i++)
-            _codes[i] = firstIndexRow[i];
+        int  letterMask    = 0;
+        bool yVowelPresent = false;
+        AvgGreen     = 0D;
+        AvgYellow    = 0D;
+        ValidAnswers = 0;
 
-        for (int answerIndex = 1; answerIndex < Count; answerIndex++)
+        for (int answerIndex = 0; answerIndex < Count; answerIndex++)
         {
-            var row = Data.GetPatternRow(wordIndexes[answerIndex]);
-            for (int i = 0; i < Data.ValidGuesses.Length; i++)
-                _codes[i] = _codes[i] * 243 + row[i];
+            var index = WordIndexes[answerIndex];
+
+            letterMask |= Math.Abs(Data.ProcessedGuesses[index].LetterMask);
+            AvgGreen  += Data.GreenLetters[index];
+            AvgYellow += Data.YellowLetters[index];
+
+            if (!yVowelPresent)
+            {
+                var mask = Data.ProcessedGuesses[index].Mask;
+                yVowelPresent =
+                    (mask & FirstYVowelMask) is FirstYVowelMask ||
+                    (mask & SecondYVowelMask) is SecondYVowelMask ||
+                    (mask & ThirdYVowelMask) is ThirdYVowelMask;
+            }
+
+            if (Data.WordIsValidAnswer[index])
+                ValidAnswers++;
+
+            var rowSpan = Data.GetPatternRow(index);
+
+            if (answerIndex is 0)
+                for (int i = 0; i < Data.ValidGuesses.Length; i++)
+                    _codes[i] = rowSpan[i];
+            else
+                for (int i = 0; i < Data.ValidGuesses.Length; i++)
+                    _codes[i] = _codes[i] * 243 + rowSpan[i];
         }
 
         for (int i = 0; i < Data.ValidGuesses.Length; i++)
@@ -50,68 +79,19 @@ public sealed class WordSet
         WorstCaseRemaining = stats.worstCase;
         ExpectedRemaining  = stats.expectedRemaining;
 
-        AvgGreen     = 0D;
-        AvgYellow    = 0D;
-        ValidAnswers = 0;
-        VowelScore   = 0D;
+        VowelScore = 0D;
 
-        var aPresent = false;
-        var ePresent = false;
-        var iPresent = false;
-        var oPresent = false;
-        var uPresent = false;
-        var yPresent = false;
-
-        for (int i = 0; i < Count; i++)
-        {
-            var index = WordIndexes[i];
-
-            AvgGreen  += Data.GreenLetters[index];
-            AvgYellow += Data.YellowLetters[index];
-
-            if (Data.WordIsValidAnswer[index])
-                ValidAnswers++;
-
-            for (int j = 0; j < 5; j++)
-            {
-                var c = Data.ValidGuesses[index][j];
-
-                switch (c)
-                {
-                    case 'a':
-                        aPresent = true;
-                        break;
-                    case 'e':
-                        ePresent = true;
-                        break;
-                    case 'i':
-                        iPresent = true;
-                        break;
-                    case 'o':
-                        oPresent = true;
-                        break;
-                    case 'u':
-                        uPresent = true;
-                        break;
-                    case 'y':
-                        if (j is not 0 and not 4)
-                            yPresent = true;
-                        break;
-                }
-            }
-        }
-
-        if(aPresent)
+        if((letterMask & 1) is not 0)
             VowelScore += Data.LetterDistribution['a'];
-        if(ePresent)
+        if((letterMask & (1U << 4)) is not 0)
             VowelScore += Data.LetterDistribution['e'];
-        if(iPresent)
+        if((letterMask & (1U << 8)) is not 0)
             VowelScore += Data.LetterDistribution['i'];
-        if(oPresent)
+        if((letterMask & (1U << 14)) is not 0)
             VowelScore += Data.LetterDistribution['o'];
-        if(uPresent)
+        if((letterMask & (1U << 20)) is not 0)
             VowelScore += Data.LetterDistribution['u'];
-        if(yPresent)
+        if(yVowelPresent)
             VowelScore += Data.YAsVowelDistributionScore;
 
         VowelScore /= Data.TotalVowelLetterDistributionScore;
