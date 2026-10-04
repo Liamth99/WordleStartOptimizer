@@ -97,14 +97,14 @@ public sealed class WordSet
         VowelScore /= Data.TotalVowelLetterDistributionScore;
     }
 
-    public Dictionary<long, int> GetPatternCounts()
+    public PatternCounter<ulong> GetPatternCounts()
     {
-        var dic = new Dictionary<long, int>(Data.ValidGuesses.Length);
+        var counter = new PatternCounter<ulong>(Data.ValidGuesses.Length);
 
         for (short answerIndex = 0; answerIndex < Data.ProcessedGuesses.Length; answerIndex++)
         {
-            long combinedPatternCode = 0;
-            long multiplier          = 1;
+            ulong combinedPatternCode = 0;
+            ulong multiplier          = 1;
 
             foreach (short guessIndex in WordIndexes)
             {
@@ -112,11 +112,10 @@ public sealed class WordSet
                 multiplier          *= 243;
             }
 
-            if (!dic.TryAdd(combinedPatternCode, 1))
-                dic[combinedPatternCode]++;
+            counter.Add(combinedPatternCode);
         }
 
-        return dic;
+        return counter;
     }
 
     public WordSet SubSet(int index)
