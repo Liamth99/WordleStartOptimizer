@@ -13,7 +13,7 @@ public sealed class WordSet
     public int Count { get; init; }
 
     [ThreadStatic]
-    private static Dictionary<long, int>? _patternCountCache;
+    private static PatternCounter<ulong>? _patternCountCache;
 
     public WordSet(short[] wordIndexes)
     {
@@ -22,14 +22,14 @@ public sealed class WordSet
         Count = WordIndexes.Length;
 
         if (_patternCountCache is null)
-            _patternCountCache = new Dictionary<long, int>(Data.ValidGuesses.Length);
+            _patternCountCache = new (Data.ValidGuesses.Length);
         else
             _patternCountCache.Clear();
 
         for (short answerIndex = 0; answerIndex < Data.ProcessedGuesses.Length; answerIndex++)
         {
-            long combinedPatternCode = 0;
-            long multiplier          = 1;
+            ulong combinedPatternCode = 0;
+            ulong multiplier          = 1;
 
             foreach (short guessIndex in WordIndexes)
             {
@@ -37,27 +37,14 @@ public sealed class WordSet
                 multiplier          *= 243;
             }
 
-            if (!_patternCountCache.TryAdd(combinedPatternCode, 1))
-                _patternCountCache[combinedPatternCode]++;
+            _patternCountCache.Add(combinedPatternCode);
         }
 
-        Entropy            = 0D;
-        WorstCaseRemaining = 0;
+        var stats = _patternCountCache.CalculateStatistics(Data.ProcessedGuesses.Length);
 
-        double total                = Data.ProcessedGuesses.Length;
-        var    expectedRemainingSum = 0;
-
-        foreach (int count in _patternCountCache.Values)
-        {
-            Entropy += Data.EntropyContributionByCount[count];
-
-            expectedRemainingSum += count * count;
-
-            if (count > WorstCaseRemaining)
-                WorstCaseRemaining = count;
-        }
-
-        ExpectedRemaining = expectedRemainingSum / total;
+        Entropy            = stats.entropy;
+        WorstCaseRemaining = stats.worstCase;
+        ExpectedRemaining  = stats.expectedRemaining;
 
         AvgGreen     = 0D;
         AvgYellow    = 0D;

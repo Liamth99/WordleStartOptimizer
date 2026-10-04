@@ -7,13 +7,13 @@ public class EntropyTests
     [Fact]
     public void ValidWordsEntropiesAreCorrect()
     {
-        Dictionary<byte, int> counts = new (Data.ValidGuesses.Length);
+        PatternCounter<byte> counts = new (Data.ValidGuesses.Length);
         for (int i = 0; i < Data.ValidGuesses.Length; i++)
         {
             counts.Clear();
             Data.WordEntropies[i].ShouldBe(
                 i.AddPatternCounts(Enumerable.Range(0, Data.ValidGuesses.Length), counts)
-                 .CalcEntropy(Data.ValidGuesses.Length),
+                 .CalculateEntropy(Data.ValidGuesses.Length),
                 tolerance: 0.00001D);
         }
     }

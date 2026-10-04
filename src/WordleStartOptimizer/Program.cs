@@ -170,9 +170,9 @@ internal class Program
         {
             var stats = index
                        .GeneratePatternCounts(validIndexes)
-                       .CalcEntropyWithWorstRemaining(validIndexes.Count);
+                       .CalculateEntropyWithWorstRemaining(validIndexes.Count);
 
-            results.Add(new (index, stats.worstRemaining, stats.entropy));
+            results.Add(new (index, stats.worstCase, stats.entropy));
         }
 
         var table = new Table().AddColumns("Word", "Worst Case Remaining", "Entropy");
