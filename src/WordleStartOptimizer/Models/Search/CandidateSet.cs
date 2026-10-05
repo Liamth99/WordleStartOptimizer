@@ -2,10 +2,10 @@ using System.Diagnostics;
 
 namespace WordleStartOptimizer.Models.Search;
 
-[DebuggerDisplay("{DisplayString}")]
+[DebuggerDisplay("{ToString()}")]
 public readonly struct CandidateSet
 {
-    private string DisplayString => string.Join(", ", WordIndexes().Select(x => Data.ValidGuesses[x]));
+    public override string ToString() => string.Join(", ", WordIndexes().Select(x => Data.ValidGuesses[x]));
 
     public CandidateSet(IEnumerable<short> indexes)
     {
@@ -20,21 +20,15 @@ public readonly struct CandidateSet
 
     public short WordIndex(int i)
     {
-        switch (i)
+        return i switch
         {
-            case 0:
-                return _index1;
-            case 1:
-                return _index2;
-            case 2:
-                return _index3;
-            case 3:
-                return _index4;
-            case 4:
-                return _index5;
-            default:
-                throw new IndexOutOfRangeException();
-        }
+            0 => _index1,
+            1 => _index2,
+            2 => _index3,
+            3 => _index4,
+            4 => _index5,
+            _ => throw new IndexOutOfRangeException()
+        };
     }
 
     public short[] WordIndexes()
