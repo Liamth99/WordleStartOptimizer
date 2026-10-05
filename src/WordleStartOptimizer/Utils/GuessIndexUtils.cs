@@ -1,66 +1,49 @@
 using System.Numerics;
+using WordleStartOptimizer.Models;
 
 namespace WordleStartOptimizer.Utils;
 
 public static class GuessIndexUtils
 {
-    public static Dictionary<byte, int> GeneratePatternCounts(this short index, IEnumerable<short> sampleIndexes)
+    public static PatternCounter<byte> GeneratePatternCounts(this short index, IEnumerable<short> sampleIndexes)
     {
-        Dictionary<byte, int> patternCounts = [];
-        foreach (short validIndex in sampleIndexes)
-        {
-            var pattern = Data.PatternMatrix[index, validIndex];
+        var indexArr = sampleIndexes as short[] ?? sampleIndexes.ToArray();
+        var patternCounts = new PatternCounter<byte>(indexArr.Length);
 
-            if (!patternCounts.TryAdd(pattern, 1))
-                patternCounts[pattern]++;
-        }
+        foreach (short validIndex in indexArr)
+            patternCounts.Add(Data.PatternMatrix[index, validIndex]);
 
         return patternCounts;
     }
 
-    public static Dictionary<byte, int> GeneratePatternCounts<TNumber, TNumber2>(this TNumber index, IEnumerable<TNumber2> sampleIndexes)
+    public static PatternCounter<byte> GeneratePatternCounts<TNumber, TNumber2>(this TNumber index, IEnumerable<TNumber2> sampleIndexes)
         where TNumber : INumber<TNumber>
         where TNumber2 : INumber<TNumber2>
     {
-        Dictionary<byte, int> patternCounts = [];
-        foreach (short validIndex in sampleIndexes.Select(x => x is short s ? s : short.CreateChecked(x)))
-        {
-            var pattern = Data.PatternMatrix[index is short s ? s : short.CreateChecked(index), validIndex];
+        var indexArr = sampleIndexes as TNumber2[] ?? sampleIndexes.ToArray();
+        var patternCounts = new PatternCounter<byte>(indexArr.Length);
 
-            if (!patternCounts.TryAdd(pattern, 1))
-                patternCounts[pattern]++;
-        }
+        foreach (var validIndex in indexArr)
+            patternCounts.Add(Data.PatternMatrix[index is short s ? s : short.CreateChecked(index), validIndex is short s2 ? s2 : short.CreateChecked(validIndex)]);
 
         return patternCounts;
     }
 
-    public static TDictionary AddPatternCounts<TDictionary>(this short index, IEnumerable<short> sampleIndexes, TDictionary existingDictionary)
-        where TDictionary : IDictionary<byte, int>
+    public static PatternCounter<byte> AddPatternCounts(this short index, IEnumerable<short> sampleIndexes, PatternCounter<byte> existingCounter)
     {
         foreach (short validIndex in sampleIndexes)
-        {
-            var pattern = Data.PatternMatrix[index, validIndex];
+            existingCounter.Add(Data.PatternMatrix[index, validIndex]);
 
-            if (!existingDictionary.TryAdd(pattern, 1))
-                existingDictionary[pattern]++;
-        }
-
-        return existingDictionary;
+        return existingCounter;
     }
 
-    public static TDictionary AddPatternCounts<TDictionary, TNumber, TNumber2>(this TNumber index, IEnumerable<TNumber2> sampleIndexes, TDictionary existingDictionary)
-        where TDictionary : IDictionary<byte, int>
+    public static PatternCounter<byte> AddPatternCounts<TNumber, TNumber2>(this TNumber index, IEnumerable<TNumber2> sampleIndexes, PatternCounter<byte> existingCounter)
         where TNumber : INumber<TNumber>
         where TNumber2 : INumber<TNumber2>
     {
         foreach (short validIndex in sampleIndexes.Select(x => x is short s ? s : short.CreateChecked(x)))
-        {
-            var pattern = Data.PatternMatrix[index is short s ? s : short.CreateChecked(index), validIndex];
+            existingCounter.Add(Data.PatternMatrix[short.CreateChecked(index), validIndex]);
 
-            if (!existingDictionary.TryAdd(pattern, 1))
-                existingDictionary[pattern]++;
-        }
-
-        return existingDictionary;
+        return existingCounter;
     }
 }

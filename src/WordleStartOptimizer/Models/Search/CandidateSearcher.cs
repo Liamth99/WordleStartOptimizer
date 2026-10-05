@@ -1,13 +1,14 @@
 using System.Collections.Concurrent;
 using WordleStartOptimizer.Models.Options;
+using WordleStartOptimizer.Models.Search.CandidateSet;
 
 namespace WordleStartOptimizer.Models.Search;
 
 public static class CandidateSearcher
 {
-    public static CandidateSet[] GenerateCandidates(SetGenerationOptions options, Action<double, int>? onProgress = null)
+    public static ICandidateSet[] GenerateCandidates(SetGenerationOptions options, Action<double, int>? onProgress = null)
     {
-        ConcurrentBag<CandidateSet> candidates = [];
+        ConcurrentBag<ICandidateSet> candidates = [];
 
         int    completed    = 0;
         double lastProgress = 0;
@@ -42,7 +43,7 @@ public static class CandidateSearcher
         return candidates.ToArray();
     }
 
-    private static void StartSearchFrom(int firstWordIndex, ConcurrentBag<CandidateSet> candidates, SetGenerationOptions options)
+    private static void StartSearchFrom(int firstWordIndex, ConcurrentBag<ICandidateSet> candidates, SetGenerationOptions options)
     {
         var mask = Data.ProcessedGuesses[firstWordIndex].LetterMask;
 
@@ -71,22 +72,15 @@ public static class CandidateSearcher
         Search((short)(firstWordIndex + 1), mask, setIndex, chosen, candidates, options);
     }
 
-    private static void Search(short start, int usedMask, int depth, short[] chosen, ConcurrentBag<CandidateSet> candidates, SetGenerationOptions options)
+    private static void Search(short start, int usedMask, int depth, short[] chosen, ConcurrentBag<ICandidateSet> candidates, SetGenerationOptions options)
     {
         if (depth == options.SetSize)
         {
             if(!MatchesConstraints(usedMask, chosen, options))
                 return;
 
-            var    words    = new short[options.SetSize];
-
-            for (int i = 0; i < chosen.Length; i++)
-            {
-                words[i] =  chosen[i];
-            }
-
             candidates.Add(
-                new CandidateSet(words)
+                ICandidateSet.CreateSet(chosen)
             );
 
             return;

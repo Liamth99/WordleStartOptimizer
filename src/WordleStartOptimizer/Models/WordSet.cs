@@ -13,126 +13,98 @@ public sealed class WordSet
     public int Count { get; init; }
 
     [ThreadStatic]
-    private static Dictionary<long, int>? _patternCountCache;
+    private static PatternCounter<ulong>? _patternCountCache;
+
+    [ThreadStatic]
+    private static ulong[]? _codes;
+
+    private const uint FirstYVowelMask  = 25U << 5;
+    private const uint SecondYVowelMask = 25U << 10;
+    private const uint ThirdYVowelMask  = 25U << 15;
 
     public WordSet(short[] wordIndexes)
     {
-        WordIndexes = wordIndexes.OrderByDescending(x => Data.WordLetterDistributionScore[x]).ToArray();
+        WordIndexes = new short[wordIndexes.Length];
+        wordIndexes.CopyTo(WordIndexes);
         Count = WordIndexes.Length;
 
         if (_patternCountCache is null)
-            _patternCountCache = new Dictionary<long, int>(Data.ValidGuesses.Length);
+            _patternCountCache = new (Data.ValidGuesses.Length);
         else
             _patternCountCache.Clear();
+        _codes ??= new ulong[Data.ValidGuesses.Length];
 
-        for (short answerIndex = 0; answerIndex < Data.ProcessedGuesses.Length; answerIndex++)
-        {
-            long combinedPatternCode = 0;
-            long multiplier          = 1;
-
-            foreach (short guessIndex in WordIndexes)
-            {
-                combinedPatternCode += Data.PatternMatrix[guessIndex, answerIndex] * multiplier;
-                multiplier          *= 243;
-            }
-
-            if (!_patternCountCache.TryAdd(combinedPatternCode, 1))
-                _patternCountCache[combinedPatternCode]++;
-        }
-
-        Entropy            = 0D;
-        WorstCaseRemaining = 0;
-
-        double total                = Data.ProcessedGuesses.Length;
-        var    expectedRemainingSum = 0;
-
-        foreach (int count in _patternCountCache.Values)
-        {
-            Entropy += Data.EntropyContributionByCount[count];
-
-            expectedRemainingSum += count * count;
-
-            if (count > WorstCaseRemaining)
-                WorstCaseRemaining = count;
-        }
-
-        ExpectedRemaining = expectedRemainingSum / total;
-
+        int  letterMask    = 0;
+        bool yVowelPresent = false;
         AvgGreen     = 0D;
         AvgYellow    = 0D;
         ValidAnswers = 0;
-        VowelScore   = 0D;
 
-        var aPresent = false;
-        var ePresent = false;
-        var iPresent = false;
-        var oPresent = false;
-        var uPresent = false;
-        var yPresent = false;
-
-        for (int i = 0; i < Count; i++)
+        for (int answerIndex = 0; answerIndex < Count; answerIndex++)
         {
-            var index = WordIndexes[i];
+            var index = WordIndexes[answerIndex];
 
+            letterMask |= Math.Abs(Data.ProcessedGuesses[index].LetterMask);
             AvgGreen  += Data.GreenLetters[index];
             AvgYellow += Data.YellowLetters[index];
+
+            if (!yVowelPresent)
+            {
+                var mask = Data.ProcessedGuesses[index].Mask;
+                yVowelPresent =
+                    (mask & FirstYVowelMask) is FirstYVowelMask ||
+                    (mask & SecondYVowelMask) is SecondYVowelMask ||
+                    (mask & ThirdYVowelMask) is ThirdYVowelMask;
+            }
 
             if (Data.WordIsValidAnswer[index])
                 ValidAnswers++;
 
-            for (int j = 0; j < 5; j++)
-            {
-                var c = Data.ValidGuesses[index][j];
+            var rowSpan = Data.GetPatternRow(index);
 
-                switch (c)
-                {
-                    case 'a':
-                        aPresent = true;
-                        break;
-                    case 'e':
-                        ePresent = true;
-                        break;
-                    case 'i':
-                        iPresent = true;
-                        break;
-                    case 'o':
-                        oPresent = true;
-                        break;
-                    case 'u':
-                        uPresent = true;
-                        break;
-                    case 'y':
-                        if (j is not 0 and not 4)
-                            yPresent = true;
-                        break;
-                }
-            }
+            if (answerIndex is 0)
+                for (int i = 0; i < Data.ValidGuesses.Length; i++)
+                    _codes[i] = rowSpan[i];
+            else
+                for (int i = 0; i < Data.ValidGuesses.Length; i++)
+                    _codes[i] = _codes[i] * 243 + rowSpan[i];
         }
 
-        if(aPresent)
+        for (int i = 0; i < Data.ValidGuesses.Length; i++)
+            _patternCountCache.Add(_codes[i]);
+
+        var stats = _patternCountCache.CalculateStatistics(Data.ProcessedGuesses.Length);
+
+        Entropy            = stats.entropy;
+        WorstCaseRemaining = stats.worstCase;
+        ExpectedRemaining  = stats.expectedRemaining;
+
+        VowelScore = 0D;
+
+        if((letterMask & 1) is not 0)
             VowelScore += Data.LetterDistribution['a'];
-        if(ePresent)
+        if((letterMask & (1U << 4)) is not 0)
             VowelScore += Data.LetterDistribution['e'];
-        if(iPresent)
+        if((letterMask & (1U << 8)) is not 0)
             VowelScore += Data.LetterDistribution['i'];
-        if(oPresent)
+        if((letterMask & (1U << 14)) is not 0)
             VowelScore += Data.LetterDistribution['o'];
-        if(uPresent)
+        if((letterMask & (1U << 20)) is not 0)
             VowelScore += Data.LetterDistribution['u'];
-        if(yPresent)
+        if(yVowelPresent)
             VowelScore += Data.YAsVowelDistributionScore;
 
         VowelScore /= Data.TotalVowelLetterDistributionScore;
     }
 
-    public Dictionary<long, int> GetPatternCounts()
+    public PatternCounter<ulong> GetPatternCounts()
     {
-        var dic = new Dictionary<long, int>(Data.ValidGuesses.Length);
+        var counter = new PatternCounter<ulong>(Data.ValidGuesses.Length);
 
         for (short answerIndex = 0; answerIndex < Data.ProcessedGuesses.Length; answerIndex++)
         {
-            long combinedPatternCode = 0;
-            long multiplier          = 1;
+            ulong combinedPatternCode = 0;
+            ulong multiplier          = 1;
 
             foreach (short guessIndex in WordIndexes)
             {
@@ -140,11 +112,10 @@ public sealed class WordSet
                 multiplier          *= 243;
             }
 
-            if (!dic.TryAdd(combinedPatternCode, 1))
-                dic[combinedPatternCode]++;
+            counter.Add(combinedPatternCode);
         }
 
-        return dic;
+        return counter;
     }
 
     public WordSet SubSet(int index)

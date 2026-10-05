@@ -7,7 +7,10 @@ public class VowelScoreTests
     [InlineData("ae",    "crane", "slate")]
     [InlineData("y",     "gymps")]
     [InlineData("a",     "yawny")]
+    [InlineData("u",     "yurts")]
+    [InlineData("u",     "yucky")]
     [InlineData("u",     "punky")]
+    [InlineData("e",     "peeve")]
     [InlineData("oaeiu", "borts", "gamed", "filch", "punky")]
     [InlineData("aeoiu", "sared", "compt", "whilk", "bungy")]
     public void VowelScoreCorrect(string expectedVowels, params string[] words)

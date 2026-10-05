@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.InteropServices;
 using WordleStartOptimizer.Models;
 
 namespace WordleStartOptimizer;
@@ -22,6 +23,18 @@ public static partial class Data
     /// <summary>Feedback pattern for each answer/guess pair encoded in base 3.</summary>
     /// <remarks>indexed by guess then answer</remarks>
     public static byte[,] PatternMatrix = new byte[0, 0];
+
+    /// <summary>
+    /// Retrieves a read-only span of bytes representing the feedback pattern for a specific guess across all possible answers.
+    /// </summary>
+    /// <param name="guessIndex">
+    /// The index of the guess in the PatternMatrix for which the feedback pattern row is to be retrieved.
+    /// </param>
+    /// <returns>
+    /// A read-only span of bytes containing the feedback pattern for the specified guess, where each byte is encoded in base 3.
+    /// </returns>
+    public static ReadOnlySpan<byte> GetPatternRow(int guessIndex)
+        => MemoryMarshal.CreateReadOnlySpan(ref PatternMatrix[guessIndex, 0], PatternMatrix.GetLength(1));
 
     /// Represents the theoretical maximum entropy achievable for the set of valid guesses.
     /// This value is calculated as the base-2 logarithm of the total number of valid guesses.

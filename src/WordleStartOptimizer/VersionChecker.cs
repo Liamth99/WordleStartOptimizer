@@ -7,7 +7,7 @@ namespace WordleStartOptimizer;
 
 public static class VersionChecker
 {
-    [Conditional("DEBUG")]
+    [Conditional("RELEASE")]
     public static void CheckVersionAsync()
     {
         try
