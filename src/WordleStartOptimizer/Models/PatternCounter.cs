@@ -5,12 +5,12 @@ using System.Numerics;
 namespace WordleStartOptimizer.Models;
 
 [DebuggerDisplay("Keys = {_keys.Length}")]
-public sealed class PatternCounter<TPattern> : IEnumerable<KeyValuePair<TPattern,int>>
+public sealed class PatternCounter<TPattern> : IEnumerable<KeyValuePair<TPattern,short>>
     where TPattern : IBinaryInteger<TPattern>, IUnsignedNumber<TPattern>
 {
     private readonly TPattern[] _keys;
-    private readonly int[]      _counts;
-    private readonly int[]      _indexedKeys;
+    private readonly short[]    _counts;
+    private readonly short[]    _indexedKeys;
     private readonly int        _mask;
     private readonly int        _shift;
     private          int        _usedCount;
@@ -20,17 +20,17 @@ public sealed class PatternCounter<TPattern> : IEnumerable<KeyValuePair<TPattern
         int size = (int)BitOperations.RoundUpToPowerOf2((uint)maxItems * 2);
 
         _keys        = new TPattern[size];
-        _counts      = new int[size];
-        _indexedKeys = new int[size];
+        _counts      = new short[size];
+        _indexedKeys = new short[size];
         _mask        = size - 1;
         _shift       = 64 - BitOperations.Log2((uint)size);
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    public IEnumerator<KeyValuePair<TPattern, int>> GetEnumerator()
+    public IEnumerator<KeyValuePair<TPattern, short>> GetEnumerator()
     {
         for (int i = 0; i < _usedCount; i++)
-            yield return new KeyValuePair<TPattern, int>(_keys[_indexedKeys[i]], _counts[_indexedKeys[i]]);
+            yield return new KeyValuePair<TPattern, short>(_keys[_indexedKeys[i]], _counts[_indexedKeys[i]]);
     }
 
     public IEnumerator<TPattern> Keys
@@ -53,7 +53,7 @@ public sealed class PatternCounter<TPattern> : IEnumerable<KeyValuePair<TPattern
 
     public void Add(TPattern key)
     {
-        int slot = (int)((ulong.CreateTruncating(key) * 0x9E3779B97F4A7C15UL) >> _shift);
+        short slot = (short)((ulong.CreateTruncating(key) * 0x9E3779B97F4A7C15UL) >> _shift);
 
         while (true)
         {
@@ -71,7 +71,7 @@ public sealed class PatternCounter<TPattern> : IEnumerable<KeyValuePair<TPattern
                 return;
             }
 
-            slot = (slot + 1) & _mask;
+            slot = (short)((slot + 1) & _mask);
         }
     }
 
