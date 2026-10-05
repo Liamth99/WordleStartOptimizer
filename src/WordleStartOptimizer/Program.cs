@@ -5,6 +5,7 @@ using WordleStartOptimizer.Models;
 using Spectre.Console;
 using WordleStartOptimizer.Models.Options;
 using WordleStartOptimizer.Models.Search;
+using WordleStartOptimizer.Models.Search.CandidateSet;
 using WordleStartOptimizer.Output;
 using WordleStartOptimizer.Utils;
 
@@ -60,7 +61,7 @@ internal class Program
             for (int i = 1; i <= sampleSize; i++)
                 maximumCandidates = maximumCandidates * (options.WordsToCheck - sampleSize + i) / i;
 
-            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates (~[red]{(decimal)maximumCandidates! * Unsafe.SizeOf<CandidateSet>() / 1073741824M:N2}[/] GiB).");
+            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates (~[red]{(decimal)maximumCandidates! * options.SetSize * sizeof(short) / 1073741824M:N2}[/] GiB).");
 
             if (maximumCandidates > int.MaxValue)
             {
@@ -112,7 +113,7 @@ internal class Program
                       var candidateTask = ctx.AddTask("Creating candidates", maxValue: 1);
                       candidateTask.StartTask();
 
-                      CandidateSet[] candidates = CandidateSearcher.GenerateCandidates(
+                      ICandidateSet[] candidates = CandidateSearcher.GenerateCandidates(
                               options,
                               (p, n) =>
                               {
