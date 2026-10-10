@@ -24,9 +24,8 @@ public sealed class WordSet
 
     public WordSet(short[] wordIndexes)
     {
-        WordIndexes = new short[wordIndexes.Length];
-        wordIndexes.CopyTo(WordIndexes);
-        Count = WordIndexes.Length;
+        Count       = wordIndexes.Length;
+        WordIndexes = new short[Count];
 
         if (_patternCountCache is null)
             _patternCountCache = new (Data.ValidGuesses.Length);
@@ -42,6 +41,7 @@ public sealed class WordSet
 
         for (int answerIndex = 0; answerIndex < Count; answerIndex++)
         {
+            WordIndexes[answerIndex] = wordIndexes[answerIndex];
             var index = WordIndexes[answerIndex];
 
             letterMask |= Math.Abs(Data.ProcessedGuesses[index].LetterMask);
