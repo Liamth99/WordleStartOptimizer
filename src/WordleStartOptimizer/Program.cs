@@ -26,14 +26,14 @@ internal class Program
                                 );
     }
 
-    private static async Task<int> RunGenSetAsync(SetGenerationOptions options)
+    private static Task<int> RunGenSetAsync(SetGenerationOptions options)
     {
         VersionChecker.CheckVersionAsync();
 
         if (options.RequiredWordsIndexes?.Length >= options.SetSize)
         {
             AnsiConsole.WriteException(new ArgumentException($"Required words length must be less than Set Size ({options.SetSize}).", nameof(options.RequiredWords)));
-            return 1;
+            return Task.FromResult(1);
         }
 
         AnsiConsole.MarkupLine($"Generating starting word sets with {options.SetSize} words.");
@@ -75,13 +75,13 @@ internal class Program
         if (scoredSets.Length is 0)
         {
             SetGenerationReporter.ReportNoResults();
-            return 0;
+            return Task.FromResult(0);
         }
 
         if (scoredSets.Length is 1)
         {
             SetGenerationReporter.ReportSingleResult(scoredSets[0], options);
-            return 0;
+            return Task.FromResult(0);
         }
 
         var scoringContext = new WordSetScoringContext(scoredSets);
@@ -98,7 +98,7 @@ internal class Program
 
         SetGenerationReporter.ReportTopResults(bestResults, scoringContext, options);
 
-        return 0;
+        return Task.FromResult(0);
     }
 
     private static WordSet[] RunSearch(SetGenerationOptions options)
@@ -143,7 +143,7 @@ internal class Program
         return scoredSets;
     }
 
-    private static async Task<int> RunEvaluateSetAsync(EvaluationOptions options)
+    private static Task<int> RunEvaluateSetAsync(EvaluationOptions options)
     {
         VersionChecker.CheckVersionAsync();
 
@@ -151,10 +151,10 @@ internal class Program
 
         AnsiConsole.Write(SetMarkupBuilder.BuildSetBreakDown(options));
 
-        return 0;
+        return Task.FromResult(0);
     }
 
-    private static async Task<int> RunSolveAsync(SolveOptions solveOptions)
+    private static Task<int> RunSolveAsync(SolveOptions solveOptions)
     {
         VersionChecker.CheckVersionAsync();
 
@@ -185,6 +185,6 @@ internal class Program
 
         AnsiConsole.Write(table);
 
-        return 0;
+        return Task.FromResult(0);
     }
 }
