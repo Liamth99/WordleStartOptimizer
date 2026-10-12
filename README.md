@@ -19,6 +19,13 @@ Rather than ranking individual words, Wordle Start Optimizer searches combinatio
 * Duplicate letter policies
 * Evaluate sets and get useful metrics on how it expected to perform
 
+## Installation
+
+Latest prebuilt executables can be found [here](https://github.com/Liamth99/WordleStartOptimizer/releases/tag/v2.3.3).
+
+The executables are not self contained and you will need the [.NET 10 runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) 
+installed (you do not need the SDK unless you plan on building it from source).
+
 ## How It Works
 
 The program works in two stages.
