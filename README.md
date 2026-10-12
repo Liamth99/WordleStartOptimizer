@@ -1,6 +1,6 @@
 # Wordle Start Optimizer
 
-I'm bad at wordle. So rather then getting better, I thought I'd use a skill I actually have to cheat and make the game easier (⌐■_■)
+I'm bad at wordle. So rather than getting better, I thought I'd use a skill I actually have to cheat and make the game easier (⌐■_■)
 
 A command-line tool that searches for high-quality sets of Wordle opening words.
 
@@ -8,15 +8,16 @@ Rather than ranking individual words, Wordle Start Optimizer searches combinatio
 
 ## Features
 
-* Searches every valid combination of **2–5 starting words**
+* Searches every valid combination of **1–5 starting words**
 * Multi-threaded search for improved performance
 * Configurable scoring weights
 * Adjustable search effort to trade accuracy for speed
 * Detailed scoring breakdowns
 * Generate sets with required words
-* Generate sets with required letters
+* Generate sets with required or blocked letters
 * Generate sets that match specific letter patterns
-* Evaluate sets and get usefull metrics on how it expected to perform
+* Duplicate letter policies
+* Evaluate sets and get useful metrics on how it expected to perform
 
 ## How It Works
 
@@ -24,7 +25,18 @@ The program works in two stages.
 
 ### Candidate Generation
 
-The program generates possible opening word combinations, by default sets cannot contain duplicate letters, but this can be overridden with `--allowDuplicateLetters`. 
+The program generates possible opening word combinations, by default sets cannot contain duplicate letters, but this can be overridden with `--duplicateLetterPolicy`.
+
+| Policy              | Behaviour                                                  |
+|---------------------|------------------------------------------------------------|
+| Block (default)     | No letter may appear more than once across the whole set.  |
+| BlockInSamePosition | Repeated letters are allowed, but not in the same position |
+| Allow               | No restrictions                                            |
+
+Allowing duplicates can dramatically increase the number of candidates generated, and an estimate will be displayed (this estimate assumes the policy is set to allow, 
+and no restrictions or requirements are added). Currently the is a maximum of 2,147,483,647 candiates, this can be fixed in the future, however the scoring step is yet not 
+optimized well enough for this to viable.
+
 The search effort can be adjusted to reduce the amount of candidates generated, by only using the words with the highest entropy.
 
 | Effort |       Candidates Scored |
@@ -91,7 +103,7 @@ Rewards guesses that reveal correct letters in incorrect positions.
 
 Disabled by default because other metrics already capture much of this information.
 
-Also higher isn't neccersarily better, as the higher the score, the more likely a set is to produce anagram.
+Also higher isn't necessarily better, as the higher the score, the more likely a set is to produce anagram.
 
 ---
 
@@ -100,14 +112,6 @@ Also higher isn't neccersarily better, as the higher the score, the more likely 
 Rewards sets containing a variety of vowels.
 
 Not mathematically perfect, but humans tend to appreciate discovering that their mystery word contains actual vowels.
-
-Higher is better.
-
----
-
-### Letter Distribution
-
-Rewards commonly occurring Wordle letters and prioritizes stronger words earlier in the opening sequence.
 
 Higher is better.
 
@@ -129,13 +133,13 @@ Generate a 2-word opening set:
 WordleStartOptimizer genSet 2
 ```
 
-<img src="Images/1.png">
-
 Perform the maximum search:
 
 ```bash
-WordleStartOptimizer genSet 2 --effort Max
+WordleStartOptimizer genSet 4 --effort Max
 ```
+
+<img src="Images/1.png">
 
 Show detailed scoring for top 3 results:
 
@@ -150,7 +154,6 @@ Generate an opening set that promotes anagrams:
 ```bash
 WordleStartOptimizer genSet 4 -y 1.0 -g -0.3 -e 0.5
 ```
-
 
 Generate a 3 word set with the words Adieu and Torch
 
@@ -194,4 +197,4 @@ WordleStartOptimizer eval lores daint
 
 <img src="Images/3.png">
 
-###### AI disclaimer: I used AI to assist with documentation and licensing.
+###### AI disclaimer: I used AI to assist with documentation, licensing and the `PatternCounter` class (because idk how to make performant collection types).
