@@ -24,7 +24,7 @@ public class SetGenerationOptions
         }
     }
 
-    [Option("effort", Default = EffortLevel.Normal, HelpText = "How many candidates to fully score after pre-scoring. Values: Low, Normal, High, Max.")]
+    [Option("effort", Default = EffortLevel.Normal, HelpText = "How many candidates to fully score after pre-scoring. Values: Min, Low, Normal, High, Max.")]
     public EffortLevel Effort { get; init; }
 
     public int WordsToCheck => Effort switch
@@ -173,8 +173,8 @@ public class SetGenerationOptions
 
     public WordMask? RequiredWordMask { get; private init; }
 
-    [Option("allowDuplicateLetters", Default = false, HelpText = "Whether duplicate letters are allowed in the generated starting word set")]
-    public bool AllowDuplicateLetters { get; private init; }
+    [Option("duplicateLetterPolicy", Default = DuplicateLetterPolicy.Block, HelpText = "Whether duplicate letters are allowed in the generated starting word set. Values: Block, BlockInSamePosition, Allow")]
+    public DuplicateLetterPolicy DuplicateLetterPolicy { get; private init; } = DuplicateLetterPolicy.Block;
 
     [Option("top", Default = 10, HelpText = "How many results to show when exporting data.")]
     public int TopResults { get; init; }

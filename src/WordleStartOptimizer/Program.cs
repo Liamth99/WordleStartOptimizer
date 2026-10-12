@@ -53,7 +53,9 @@ internal class Program
 
         AnsiConsole.MarkupLine($"Effort set to [red]{options.Effort}[/], using top [red]{options.WordsToCheck:N0}[/] words to generate sets.");
 
-        if (options.AllowDuplicateLetters)
+        AnsiConsole.MarkupLine($"Duplicate letter policy set to: [red]{options.DuplicateLetterPolicy}[/].");
+
+        if (options.DuplicateLetterPolicy is not DuplicateLetterPolicy.Block)
         {
             var sampleSize = options.SetSize - (options.RequiredWordsIndexes?.Length ?? 0);
             BigInteger maximumCandidates = 1;
@@ -61,12 +63,11 @@ internal class Program
             for (int i = 1; i <= sampleSize; i++)
                 maximumCandidates = maximumCandidates * (options.WordsToCheck - sampleSize + i) / i;
 
-            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates (~[red]{(decimal)maximumCandidates! * options.SetSize * sizeof(short) / 1073741824M:N2}[/] GiB).");
+            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates.");
 
             if (maximumCandidates > int.MaxValue)
             {
-                AnsiConsole.WriteLine();
-                throw new InvalidOperationException("Potential candidate count is too high. Try lowering Set size, adding required words or lowing generation effort.");
+                AnsiConsole.MarkupLine($"[black on yellow]Warning:[/] Number of candidates will cause an overflow while generating and a crash if number reaches {int.MaxValue:N0}.");
             }
         }
 
