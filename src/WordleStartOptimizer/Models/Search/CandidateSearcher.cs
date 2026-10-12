@@ -47,7 +47,7 @@ public static class CandidateSearcher
     {
         var mask = Data.ProcessedGuesses[firstWordIndex].LetterMask;
 
-        if (!options.AllowDuplicateLetters && mask < 0) // Word contains doubles and should not be included in a valid set
+        if (options.DuplicateLetterPolicy is DuplicateLetterPolicy.Block && mask < 0) // Word contains doubles and should not be included in a valid set
             return;
 
         var chosen = Enumerable.Repeat((short)0, options.SetSize).ToArray();
@@ -61,7 +61,7 @@ public static class CandidateSearcher
             {
                 chosen[setIndex] = wordIndex;
 
-                if(!options.AllowDuplicateLetters && (Data.ProcessedGuesses[wordIndex].LetterMask & mask) > 0) // Set would contain duplicate letters
+                if(options.DuplicateLetterPolicy is DuplicateLetterPolicy.Block && (Data.ProcessedGuesses[wordIndex].LetterMask & mask) > 0) // Set would contain duplicate letters
                     return;
 
                 mask |= Data.ProcessedGuesses[wordIndex].LetterMask;
@@ -90,8 +90,38 @@ public static class CandidateSearcher
         {
             var mask = Data.ProcessedGuesses[i].LetterMask;
 
-            if (!options.AllowDuplicateLetters && (mask < 0 || (usedMask & mask) is not 0))
+            if (options.DuplicateLetterPolicy is DuplicateLetterPolicy.Block && (mask < 0 || (usedMask & mask) is not 0))
                 continue;
+
+            if (options.DuplicateLetterPolicy is DuplicateLetterPolicy.BlockInSamePosition)
+            {
+                var hasDuplicateInSamePosition = false;
+
+                for (int iDepth = 0; iDepth < depth; iDepth++)
+                {
+                    var first = Data.ProcessedGuesses[chosen[iDepth]].Mask;
+
+                    for (int j = iDepth + 1; j < depth; j++)
+                    {
+                        var second = Data.ProcessedGuesses[chosen[j]].Mask;
+
+                        for (int k = 0; k < 5; k++)
+                        {
+                            if (((first >> (k * 5)) & 0x1F) == ((second >> (k * 5)) & 0x1F))
+                            {
+                                hasDuplicateInSamePosition = true;
+                                break;
+                            }
+                        }
+
+                        if (hasDuplicateInSamePosition)
+                            break;
+                    }
+                }
+
+                if (hasDuplicateInSamePosition)
+                    continue;
+            }
 
             chosen[depth] = i;
 
