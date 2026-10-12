@@ -63,7 +63,7 @@ internal class Program
             for (int i = 1; i <= sampleSize; i++)
                 maximumCandidates = maximumCandidates * (options.WordsToCheck - sampleSize + i) / i;
 
-            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates (~[red]{(decimal)maximumCandidates! * options.SetSize * sizeof(short) / 1073741824M:N2}[/] GiB).");
+            AnsiConsole.MarkupLine($"Duplicate letters are allowed, expecting a maximum of [red]{maximumCandidates:n0}[/] candidates.");
 
             if (maximumCandidates > int.MaxValue)
             {
